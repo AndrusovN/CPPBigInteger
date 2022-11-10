@@ -1,4 +1,4 @@
-CC=g++
+CC=g++ -std=c++20
 CFLAGS=-Wall -Wextra -Wpedantic -Werror
 TESTFLAGS=-lgtest -pthread --coverage
 OUTPUT=main

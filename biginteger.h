@@ -5,23 +5,19 @@
 using std::vector;
 using std::string;
 
-class BaseException {
-  public:
-    virtual void printError() const = 0;
-
-    ~BaseException() {}
-};
-
-class InvalidInputException: public Exception {
+class InvalidInputException: public std::exception {
   private:
     string input;
 
   public:
     InvalidInputException(string input) : input(input) {}
-
-    void printError() const override {
-        std::cerr << "Invalid input to create BigInteger: " << 
-            input << " expected a numerical literal" << std::endl;
+   
+   const char* what() const noexcept override {
+        auto data = "Invalid input to create BigInteger: " +
+            input + ". Expected a numerical literal";
+        char* result = new char[data.size() + 1]();
+        std::copy(data.c_str(), data.c_str() + data.size(), result);
+        return result;
     }
 };
 
@@ -63,12 +59,18 @@ class BigInteger {
 
     string toString() const;
     
-    operator long long() () const;
+    operator long long() const;
 
-    operator unsigned long long() () const;
+    operator unsigned long long() const;
+
+    explicit operator bool() const;
 
     ~BigInteger();
 };
+
+bool operator == (const BigInteger& left, const BigInteger& right);
+
+bool operator != (const BigInteger& left, const BigInteger& right);
 
 BigInteger operator + (BigInteger left, const BigInteger& right);
 
@@ -88,7 +90,7 @@ std::ostream& operator << (std::ostream& output, const BigInteger& source);
 
 auto operator <=> (const BigInteger& left, const BigInteger& right);
 
-BigInteger& operator "" _bi(long long);
+BigInteger& operator "" _bi(unsigned long long);
 
 class Rational {
   private:
@@ -114,10 +116,16 @@ class Rational {
 
     string asDecimal(size_t precision=0) const;
 
-    operator double() () const;
+    operator double() const;
+
+    explicit operator bool() const;
 };
 
 auto operator <=> (const Rational& left, const Rational& right);
+
+bool operator == (const BigInteger& left, const BigInteger& right);
+
+bool operator != (const BigInteger& left, const BigInteger& right);
 
 Rational& operator - (Rational source);
 
