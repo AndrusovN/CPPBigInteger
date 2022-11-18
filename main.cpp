@@ -1,3 +1,4 @@
+#include <compare>
 #include <sstream>
 #include <gtest/gtest.h>
 #include <random>
@@ -500,6 +501,292 @@ TEST(OperatorTests, BiRMMinusPosZero) {
     BigInteger a = 1;
     ASSERT_EQ(1, a--);
     ASSERT_EQ(0, a);
+}
+
+TEST(MethodTests, BiToString) {
+    BigInteger a = 1791791791;
+
+    ASSERT_EQ("1791791791", a.toString());
+}
+
+TEST(MethodTests, BiToStringFromString) {
+    string s = "476321836354832172498732156235748521692374863219823435621786345367821";
+    BigInteger a = s;
+
+    ASSERT_EQ(s, a.toString());
+}
+
+TEST(MethodTests, BiToStringZero) {
+    BigInteger a = 0;
+
+    ASSERT_EQ("0", a.toString());
+}
+
+TEST(MethodTests, BiToStringMoreZeroes) {
+    BigInteger a = 10;
+    --a;
+
+    ASSERT_EQ("9", a.toString());
+}
+
+TEST(MethodTests, BiToStringNeg) {
+    BigInteger a = -179;
+
+    ASSERT_EQ("-179", a.toString());
+}
+
+TEST(MethodTests, BiToStringZeroesFromString) {
+    BigInteger a = "000000000179";
+
+    ASSERT_EQ("179", a.toString());
+}
+
+TEST(OperatorTests, BiLLCast) {
+    BigInteger a = 1791791791;
+    long long b = a;
+
+    ASSERT_EQ(a, b);
+}
+
+TEST(OperatorTests, BiLLCastNeg) {
+    BigInteger a = -179179179179179179l;
+    long long b = a;
+
+    ASSERT_EQ(a, b);
+}
+
+TEST(OperatorTests, BiLLCastTooBig) {
+    BigInteger a = "179179179179179179179179179179";
+    ASSERT_ANY_THROW(static_cast<long long>(a));
+}
+
+TEST(OperatorTests, BiULLCast) {
+    BigInteger a = 1791791791;
+    unsigned long long b = a;
+    
+    ASSERT_EQ(a, b);
+}
+
+TEST(OperatorTests, BiULLCastZero) {
+    BigInteger a = 0;
+    unsigned long long b = a;
+
+    ASSERT_EQ(a, b);
+}
+
+TEST(OperatorTests, BiULLCastNegError) {
+    BigInteger a = -179;
+
+    ASSERT_ANY_THROW(static_cast<unsigned long long>(a));
+}
+
+TEST(OperatorTests, BiULLCastBigOK) {
+    BigInteger a = 1e19;
+    unsigned long long b = a;
+    
+    ASSERT_EQ(a, b);
+}
+
+TEST(OperatorTests, BiULLCastTooBig) {
+    BigInteger a = "179179179179179179179179179179";
+
+    ASSERT_ANY_THROW(static_cast<unsigned long long>(a));
+}
+
+TEST(OperatorTests, BiBoolCast) {
+    BigInteger a = 179;
+
+    ASSERT_TRUE(static_cast<bool>(a));
+}
+
+TEST(OperatorTests, BiBoolCastNeg) {
+    BigInteger a = -179;
+
+    ASSERT_TRUE(static_cast<bool>(a));
+}
+
+TEST(OperatorTests, BiBoolFalse) {
+    BigInteger a = 0;
+
+    ASSERT_FALSE(static_cast<bool>(a));
+}
+
+TEST(OperatorTests, BiEqTrue) {
+    BigInteger a = 179;
+    BigInteger b = 179;
+
+    ASSERT_TRUE(a == b);
+}
+
+TEST(OperatorTests, BiEqFalse) {
+    BigInteger a = 179;
+    BigInteger b = 57;
+
+    ASSERT_FALSE(a == b);
+}
+
+TEST(OperatorTests, BiEqSignedNeq) {
+    BigInteger a = 179;
+    BigInteger b = -179;
+
+    ASSERT_FALSE(a == b);
+}
+
+TEST(OperatorTests, BiEqTime) {
+    std::vector<BigInteger> testCases;
+    for (int i = 0; i < 179; ++i) {
+        testCases.push_back(random_bigint());
+        testCases.back() -= testCases.back() % 179;
+        testCases.back() += i;
+    }
+
+    int total_time = 0;
+    int time_treshold = 1000000;
+    for (int i = 0; i < 179; ++i) {
+        for (int j = i + 1; j < 179; ++j) {
+            Timer T;
+            T.start();
+            testCases[i] == testCases[j];
+            T.end();
+            total_time += T.get_time_microseconds();
+            ASSERT_LE(total_time, time_treshold);
+        }
+    }
+}
+
+#define TEST_SAME_OPERATOR (testingOp, correctOp) \
+    for (int i = 0; i < 20; ++i) { \
+        BigInteger first = random_bigint(100); \
+        BigInteger second = random_bigint(100); \
+        BigInteger result = first testingOp second; \
+        first correctOp second; \
+        ASSERT_EQ(first, result); \
+    }
+
+TEST(OperatorTests, BiNeqRandom) {
+    for (int i = 0; i < 20; ++i) {
+        BigInteger first = random_bigint();
+        BigInteger second = random_bigint();
+        ASSERT_EQ(first == second, !(first != second));
+    }
+}
+
+TEST(OperatorTests, BiPlusRandom) {
+    TEST_SAME_OPERATOR(+, +=);
+}
+
+TEST(OperatorTests, BiMinusRandom) {
+    TEST_SAME_OPERATOR(-, -=);
+}
+
+TEST(OperatorTests, BiTimesRandom) {
+    TEST_SAME_OPERATOR(*, *=);
+}
+
+TEST(OperatorTests, BiDivRandom) {
+    TEST_SAME_OPERATOR(/, /=);
+}
+
+TEST(OperatorTests, BiModRandom) {
+    TEST_SAME_OPERATOR(%, %=);
+}
+
+TEST(OperatorTests, BiSpaceshipG) {
+    BigInteger a = 179;
+    BigInteger b = 57;
+
+    auto cmp = a <=> b;
+    ASSERT_EQ(std::strong_ordering::greater, cmp);
+}
+
+TEST(OperatorTests, BiSpaceshipL) {
+    BigInteger a = 57;
+    BigInteger b = 179;
+
+    ASSERT_EQ(std::strong_ordering::less, a <=> b);
+}
+
+TEST(OperatorTests, BiSpacesipEq) {
+    BigInteger a = 179;
+    BigInteger b = 179;
+
+    ASSERT_EQ(std::strong_ordering::equivalent, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipGNeg) {
+    BigInteger a = 57;
+    BigInteger b = -179;
+
+    ASSERT_EQ(std::strong_ordering::greated, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipLNeg) {
+    BigInteger a = -179;
+    BigInteger b = 57;
+
+    ASSERT_EQ(std::strong_ordering::less, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipTwoNeg) {
+    BigInteger a = -179;
+    BigInteger b = -57;
+
+    ASSERT_EQ(std::strong_ordering::less, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipTwoNegEq) {
+    BigInteger a = -179;
+    BigInteger b = -179;
+
+    ASSERT_EQ(std::strong_ordering::equivalent, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipSign) {
+    BigInteger a = 179;
+    BigInteger b = -179;
+
+    ASSERT_EQ(std::strong_ordering::greater, a <=> b);
+}
+
+TEST(OperatorTests, BiSpaceshipTime) {
+    int total_time = 0;
+    int time_treshold = 1000000;
+    for (int i = 0; i < 1000; ++i) {
+        BigInteger a = random_bigint(1e4);
+        BigInteger b = random_bigint(1e4 - 30);
+
+        Timer T;
+        T.start();
+        auto res = a <=> b;
+        T.end();
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(time_treshold, total_time);
+    }
+}
+
+#define CHECK_AGREED_WITH_INT(op) \
+    for (int i = 0; i < 20; ++i) { \
+        long long a = random_value(); \
+        long long b = random_value(); \
+        BigInteger abi = a; \
+        BigInteger bbi = b; \
+        ASSERT_EQ(abi op bbi, a op b); \
+    }
+
+TEST(OperatorTests, BiLe) {
+    CHECK_AGREED_WITH_INT(<);
+}
+
+TEST(OperatorTests, BiLeq) {
+    CHECK_AGREED_WITH_INT(<=);
+}
+
+TEST(OperatorTests, BiGe) {
+    CHECK_AGREED_WITH_INT(>);
+}
+
+TEST(OperatorTests, BiGeq) {
+    CHECK_AGREED_WITH_INT(>=);
 }
 
 int main(int argc, char** argv) {

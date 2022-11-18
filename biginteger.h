@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -20,6 +22,20 @@ class InvalidInputException: public std::exception {
         return result;
     }
 };
+
+class DivisionByZeroException: public std::exception {
+  private:
+    BigInteger value;
+  public:
+    DivisionByZeroException(BigInteger value) : value(value) {}
+
+    const char* what() const noexcept override {
+        auto data = "Division by zero! Trying to divide " + value.toString() + " by zero";
+        char* result = new char[data.size() + 1]();
+        std::copy(data.c_str(), data.c_str() + data.size(), result);
+        return result;
+    } 
+}
 
 
 class BigInteger {
@@ -74,17 +90,17 @@ bool operator==(const BigInteger& left, const BigInteger& right);
 
 bool operator!=(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator+(BigInteger left, const BigInteger& right);
+BigInteger operator+(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator-(BigInteger left, const BigInteger& right);
+BigInteger operator-(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator*(BigInteger left, const BigInteger& right);
+BigInteger operator*(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator/(BigInteger left, const BigInteger& right);
+BigInteger operator/(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator%(BigInteger left, const BigInteger& right);
+BigInteger operator%(const BigInteger& left, const BigInteger& right);
 
-BigInteger operator-(BigInteger source);
+BigInteger operator-(const BigInteger& source);
 
 std::istream& operator>>(std::istream& input, BigInteger& value);
 
@@ -129,13 +145,13 @@ bool operator==(const BigInteger& left, const BigInteger& right);
 
 bool operator!=(const BigInteger& left, const BigInteger& right);
 
-Rational& operator-(Rational source);
+Rational& operator-(const Rational& source);
 
-Rational operator+(Rational left, const Rational& right);
+Rational operator+(const Rational& left, const Rational& right);
 
-Rational operator-(Rational left, const Rational& right);
+Rational operator-(const Rational& left, const Rational& right);
 
-Rational operator*(Rational left, const Rational& right);
+Rational operator*(const Rational& left, const Rational& right);
 
-Rational operator/(Rational left, const Rational& right);
+Rational operator/(const Rational& left, const Rational& right);
 

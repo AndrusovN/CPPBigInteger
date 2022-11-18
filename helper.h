@@ -7,6 +7,7 @@
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
+using std::chrono::microseconds;
 
 class OperatorNewCounter {
   private:
@@ -64,6 +65,10 @@ class Timer {
 
     int get_time_milliseconds() {
         return duration_cast<milliseconds>(end - begin).count();
+    }
+
+    int get_time_microseconds() {
+        return duration_cast<microseconds>(end - begin).count();
     }
 };
 
