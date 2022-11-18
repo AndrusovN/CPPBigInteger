@@ -28,77 +28,77 @@ TEST(ExceptionTests, CheckWhat) {
     }
 }
 
-TEST(ConstructorTests, BiDefault) {
+TEST(BiConstructorTests, Default) {
     BigInteger a;
 
     ASSERT_EQ(0, a);
 }
 
-TEST(ConstructorTests, BiLLPositive) {
+TEST(BiConstructorTests, LLPositive) {
     long long value = 179179179179ll;
     BigInteger a = value;
 
     ASSERT_EQ(value, a);
 }
 
-TEST(ConstructorTests, BiLLNegative) {
+TEST(BiConstructorTests, LLNegative) {
     long long value = -9876543212345ll;
     BigInteger a = value;
 
     ASSERT_EQ(value, a);
 }
 
-TEST(ConstructorTests, BiULL) {
+TEST(BiConstructorTests, ULL) {
     unsigned long long value = 888888888888888888ull;
     BigInteger a = value;
 
     ASSERT_EQ(value, a);
 }
 
-TEST(ConstructorTests, BiCopyConstructor) {
+TEST(BiConstructorTests, CopyConstructor) {
     BigInteger a(179);
     BigInteger b = a;
 
     ASSERT_EQ(a, b);
 }
 
-TEST(ConstructorTests, BiCopyNegative) {
+TEST(BiConstructorTests, CopyNegative) {
     BigInteger a(-179);
     BigInteger b = a;
 
     ASSERT_EQ(a, b);
 }
 
-TEST(ConstructorTests, BiStringPositive) {
+TEST(BiConstructorTests, StringPositive) {
     int num = 1791791791;
     BigInteger a = std::to_string(num);
     
     ASSERT_EQ(num, a);
 }
 
-TEST(ConstructorTests, BiStringZeroes) {
+TEST(BiConstructorTests, StringZeroes) {
     BigInteger a = "00000";
 
     ASSERT_EQ(0, a);
 }
 
-TEST(ConstructorTests, BiStringNegative) {
+TEST(BiConstructorTests, StringNegative) {
     BigInteger a = "-179";
 
     ASSERT_EQ(-179, a);
 }
 
-TEST(ConstructorTests, BiStringZeroesBegin) {
+TEST(BiConstructorTests, StringZeroesBegin) {
     BigInteger a = "000179";
 
     ASSERT_EQ(179, a);
 }
 
-TEST(ConstructorTests, BiStringException) {
+TEST(BiConstructorTests, StringException) {
     ASSERT_ANY_THROW(BigInteger a = "179qwerty");
 }
 
-TEST(ConstructorTests, BiAssign) {
+TEST(BiConstructorTests, Assign) {
     BigInteger a = 179;
     BigInteger b = 57;
     b = a;
@@ -106,7 +106,7 @@ TEST(ConstructorTests, BiAssign) {
     ASSERT_EQ(a, b);
 }
 
-TEST(ConstructorTests, BiAssingChangeSign) {
+TEST(BiConstructorTests, AssingChangeSign) {
     BigInteger a = 179;
     BigInteger b = -57;
     b = a;
@@ -114,55 +114,63 @@ TEST(ConstructorTests, BiAssingChangeSign) {
     ASSERT_EQ(a, b);
 }
 
-TEST(ConstructorTests, BiAssignZero) {
+TEST(BiConstructorTests, AssignZero) {
     BigInteger a = 179;
     a = 0;
 
     ASSERT_EQ(0, a);
 }
 
-TEST(OperatorTests, BiPlusEQ) {
+#define CHECK_OPERATOR_ALLOCATIONS(op, max_allocations_count) \
+    BigInteger a = 179; \
+    BigInteger b = 228; \
+    OperatorNewCounter cntr; \
+    a op b; \
+    ASSERT_LE(cnts.get_counter(), max_allocations_count);
+
+
+TEST(BiOperatorTests, PlusEQ) {
     BigInteger a = 179;
     a += 179;
     
     ASSERT_EQ(179l+179l, a);
 }
 
-TEST(OperatorTests, BiPlusEQNeg) {
+TEST(BiOperatorTests, PlusEQNeg) {
     BigInteger a = -179;
     a += 57;
 
     ASSERT_EQ(57-179, a);
 }
 
-TEST(OperatorTests, BiPlusEQNegNeg) {
+TEST(BiOperatorTests, PlusEQNegNeg) {
     BigInteger a = -179;
     a += -57;
 
     ASSERT_EQ(-179-57, a);
 }
 
-TEST(OperatorTests, BiPlusEQNegPos) {
+TEST(BiOperatorTests, PlusEQNegPos) {
     BigInteger a = -57;
     a += 179;
 
     ASSERT_EQ(179-57, a);
 }
 
-TEST(OperatorTests, BiPlusEQPosNeg) {
+TEST(BiOperatorTests, PlusEQPosNeg) {
     BigInteger a = 179;
     a += -57;
     ASSERT_EQ(179-57, a);
 }
 
-TEST(OperatorTests, BiPlusEQPosNegOverflow) {
+TEST(BiOperatorTests, PlusEQPosNegOverflow) {
     BigInteger a = 57;
     a += -179;
 
     ASSERT_EQ(57-179, a);
 }
 
-TEST(OperatorTests, BiPlusEQRandom) {
+TEST(BiOperatorTests, PlusEQRandom) {
     for (auto i = 0; i < 20; ++i) {
         long long first = random_value();
         long long second = random_value();
@@ -172,7 +180,7 @@ TEST(OperatorTests, BiPlusEQRandom) {
     }
 }
 
-TEST(OperatorTests, BiPlusEQTime) {
+TEST(BiOperatorTests, PlusEQTime) {
     int total_time = 0;
     int time_treshold = 1000;
     for (int i = 0; i < 100; ++i) {
@@ -187,7 +195,11 @@ TEST(OperatorTests, BiPlusEQTime) {
     }
 }
 
-TEST(OperatorTests, BiMinusEQ) {
+TEST(BiOperatorTests, PlusEqMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(+=, 1);
+}
+
+TEST(BiOperatorTests, MinusEQ) {
     BigInteger a = 11;
     for (int i = -25; i < 25; ++i) {
         a = 11;
@@ -196,7 +208,7 @@ TEST(OperatorTests, BiMinusEQ) {
     }
 }
 
-TEST(OperatorTests, BiMinusEQRandom) {
+TEST(BiOperatorTests, MinusEQRandom) {
     for (auto i = 0; i < 20; ++i) {
         long long first = random_value();
         long long second = random_value();
@@ -206,59 +218,48 @@ TEST(OperatorTests, BiMinusEQRandom) {
     }
 }
 
-TEST(OperatorTests, BiTimesEQ) {
-    BigInteger a = 57;
-    a *= 4;
-
-    ASSERT_EQ(228, a);
+TEST(BiOperatorTests, MinusEqMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(-=, 1);
 }
 
-TEST(OperatorTests, BiTimesEQNeg) {
-    BigInteger a = -57;
-    a *= 4;
+void test_mult(long long a, long long b) {
+    BigInteger bi = a;
+    bi *= b;
 
-    ASSERT_EQ(-228, a);
+    ASSERT_EQ(a * b, bi);
 }
 
-TEST(OperatorTests, BiTimesEQNegNeg) {
-    BigInteger a = -57;
-    a *= -4;
-
-    ASSERT_EQ(228, a);
+TEST(BiOperatorTests, TimesEQ) {
+    test_mult(57, 4);
 }
 
-TEST(OperatorTests, BiTimesEQPosNeg) {
-    BigInteger a = 4;
-    a *= -57;
-
-    ASSERT_EQ(-228, a);
+TEST(BiOperatorTests, TimesEQNeg) {
+    test_mult(-57, 4);
 }
 
-TEST(OperatorTests, BiTimesEQZero) {
-    BigInteger a = 1791791791;
-    a *= 0;
-
-    ASSERT_EQ(0, a);
+TEST(BiOperatorTests, TimesEQNegNeg) {
+    test_mult(-57, -4);
 }
 
-TEST(OperatorTests, BiTimesEQZeroNeg) {
-    BigInteger a = -1791791791;
-    a *= 0;
-
-    ASSERT_EQ(0, a);
+TEST(BiOperatorTests, TimesEQPosNeg) {
+    test_mult(57, -4);
 }
 
-TEST(OperatorTests, BiTimesEQRandom) {
+TEST(BiOperatorTests, TimesEQZero) {
+    test_mult(1791791791, 0);
+}
+
+TEST(BiOperatorTests, TimesEQZeroNeg) {
+    test_mult(-1791791791, 0);
+}
+
+TEST(BiOperatorTests, TimesEQRandom) {
     for (auto i = 0; i < 20; ++i) {
-        long long first = random_value();
-        long long second = random_value();
-        BigInteger a = first;
-        a *= second;
-        ASSERT_EQ(first * second, a);
+        test_mult(random_value(), random_value());
     }
 }
 
-TEST(OperatorTests, BiTimesEQTime) {
+TEST(BiOperatorTests, TimesEQTime) {
     int total_time = 0;
     int time_treshold = 2000;
 
@@ -274,6 +275,10 @@ TEST(OperatorTests, BiTimesEQTime) {
     }
 }
 
+TEST(BiOperatorTests, TimesEqMemory) {
+    CHECK_OPERATOR_ALLOCATES(*=, 2);
+}
+
 void test_division(long long left, long long right) {
     BigInteger a = left;
     a /= right;
@@ -281,23 +286,23 @@ void test_division(long long left, long long right) {
     ASSERT_EQ(left / right, a);
 }
 
-TEST(OperatorTests, BiDivEQ) {
+TEST(BiOperatorTests, DivEQ) {
     test_division(179, 57);
 }
 
-TEST(OperatorTests, BiDivNeg) {
+TEST(BiOperatorTests, DivNeg) {
     test_division(-179, 57);
 }
 
-TEST(OperatorTests, BiDivPosNeg) {
+TEST(BiOperatorTests, DivPosNeg) {
     test_division(-179, 57)
 }
 
-TEST(OperatorTests, BiDivNegNeg) {
+TEST(BiOperatorTests, DivNegNeg) {
     test_division(-179, -57);
 }
 
-TEST(OperatorTests, BiDivRandom) {
+TEST(BiOperatorTests, DivRandom) {
     for (int i = 0; i < 20; ++i) {
         auto left = random_value();
         auto right = 0;
@@ -306,12 +311,12 @@ TEST(OperatorTests, BiDivRandom) {
     }
 }
 
-TEST(OperatorTests, BiDivZeroDivisionExc) {
+TEST(BiOperatorTests, DivZeroDivisionExc) {
     BigInteger a = 179;
-    ASSERT_ANY_THROW(a / 0);
+    ASSERT_THROW(a / 0, DivisionByZeroException);
 }
 
-TEST(OperatorTests, BiDivTime) {
+TEST(BiOperatorTests, DivTime) {
     int total_time = 0;
     int time_treshold = 2000;
 
@@ -327,6 +332,10 @@ TEST(OperatorTests, BiDivTime) {
     }
 }
 
+TEST(BiOperatorTests, DivMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(/=, 1);
+}
+
 void test_modulus(long long left, long long right) {
     BigInteger a = left;
     a %= right;
@@ -334,28 +343,28 @@ void test_modulus(long long left, long long right) {
     ASSERT_EQ(left % right, a);
 }
 
-TEST(OperatorTests, BiMod) {
+TEST(BiOperatorTests, Mod) {
     test_modulus(179, 57);
 }
 
-TEST(OperatorTests, BiModNeg) {
+TEST(BiOperatorTests, ModNeg) {
     test_modulus(-179, 57);
 }
 
-TEST(OperatorTests, BiModPosNeg) {
+TEST(BiOperatorTests, ModPosNeg) {
     test_modulus(179, -57);
 }
 
-TEST(OperatorTests, BiModNegNeg) {
+TEST(BiOperatorTests, ModNegNeg) {
     test_modulus(-179, -179);
 }
 
-TEST(OperatorTests, BiModZeroDivisionExc) {
+TEST(BiOperatorTests, ModZeroDivisionExc) {
     BigInteger a = 179;
     ASSERT_ANY_THROW(a % 0);
 }
 
-TEST(OperatorTests, BiModRandom) {
+TEST(BiOperatorTests, ModRandom) {
     for (int i = 0; i < 20; ++i) {
         long long left = random_value();
         long long right = 0;
@@ -365,7 +374,7 @@ TEST(OperatorTests, BiModRandom) {
     }
 }
 
-TEST(OperatorTests, BiModTime) {
+TEST(BiOperatorTests, ModTime) {
     int total_time = 0;
     int time_treshold = 2000;
 
@@ -381,31 +390,35 @@ TEST(OperatorTests, BiModTime) {
     }
 }
 
-TEST(OperatorTests, BiLPPlus) {
+TEST(BiOperatorTests, ModMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(%=, 3);
+}
+
+TEST(BiOperatorTests, LPPlus) {
     BigInteger a = 178;
     ASSERT_EQ(179, ++a);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiLPPlusNeg) {
+TEST(BiOperatorTests, LPPlusNeg) {
     BigInteger a = -180;
     ASSERT_EQ(-179, ++a);
     ASSERT_EQ(-179, a);
 }
 
-TEST(OperatorTests, BiLPPlusNegZero) {
+TEST(BiOperatorTests, LPPlusNegZero) {
     BigInteger a = -1;
     ASSERT_EQ(0, ++a);
     ASSERT_EQ(0, a);
 }
 
-TEST(OperatorTests, BiLPPlusDoublePlus) {
+TEST(BiOperatorTests, LPPlusDoublePlus) {
     BigInteger a = 177;
     ASSERT_EQ(179, ++++a);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiLPPlusTime) {
+TEST(BiOperatorTests, LPPlusTime) {
     int total_time = 0;
     int time_treshold = 1000;
     
@@ -424,49 +437,63 @@ TEST(OperatorTests, BiLPPlusTime) {
     }
 }
 
-TEST(OperatorTests, BiRPPlus) {
+TEST(BiOperatorTests, LPPlusMemory) {
+    BigInteger a = 179;
+    OperatorNewCounter cntr;
+    ++a;
+    ASSERT_EQ(0, cntr.get_counter());
+}
+
+TEST(BiOperatorTests, RPPlus) {
     BigInteger a = 178;
     ASSERT_EQ(178, a++);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiRPPlusNeg) {
+TEST(BiOperatorTests, RPPlusNeg) {
     BigInteger a = -180;
     ASSERT_EQ(-180, a++);
     ASSERT_EQ(-179, a);
 }
 
-TEST(OperatorTests, BiRPPlusNegZero) {
+TEST(BiOperatorTests, RPPlusNegZero) {
     BigInteger a = -1;
     ASSERT_EQ(-1, a++);
     ASSERT_EQ(0, a);
 }
 
-TEST(OperatorTests, BiLMMinus) {
+TEST(BiOperatorTests, RPPlusMemory) {
+    BigInteger a = 179;
+    OperatorNewCounter cntr;
+    b = a++;
+    ASSERT_LE(cntr.get_counter(), 1);
+}
+
+TEST(BiOperatorTests, LMMinus) {
     BigInteger a = 180;
     ASSERT_EQ(179, --a);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiLMMinusNeg) {
+TEST(BiOperatorTests, LMMinusNeg) {
     BigInteger a = -178;
     ASSERT_EQ(-179, --a);
     ASSERT_EQ(-179, a);
 }
 
-TEST(OperatorTests, BiLMMinusPosZero) {
+TEST(BiOperatorTests, LMMinusPosZero) {
     BigInteger a = 1;
     ASSERT_EQ(0, --a);
     ASSERT_EQ(0, a);
 }
 
-TEST(OperatorTests, BiLMMinusDoubleMinus) {
+TEST(BiOperatorTests, LMMinusDoubleMinus) {
     BigInteger a = 181;
     ASSERT_EQ(179, ----a);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiLMMinusTime) {
+TEST(BiOperatorTests, LMMinusTime) {
     int total_time = 0;
     int time_treshold = 1000;
     
@@ -485,154 +512,183 @@ TEST(OperatorTests, BiLMMinusTime) {
     }
 }
 
-TEST(OperatorTests, BiRMMinus) {
+TEST(BiOperatorTests, LMMinusMemory) {
+    BigInteger a = 180;
+    OperatorNewCounter cntr;
+    --a;
+    ASSERT_EQ(cntr.get_counter(), 0);
+}
+
+TEST(BiOperatorTests, RMMinus) {
     BigInteger a = 180;
     ASSERT_EQ(180, a--);
     ASSERT_EQ(179, a);
 }
 
-TEST(OperatorTests, BiRMMinusNeg) {
+TEST(BiOperatorTests, RMMinusNeg) {
     BigInteger a = -178;
     ASSERT_EQ(-178, a--);
     ASSERT_EQ(-179, a);
 }
 
-TEST(OperatorTests, BiRMMinusPosZero) {
+TEST(BiOperatorTests, RMMinusPosZero) {
     BigInteger a = 1;
     ASSERT_EQ(1, a--);
     ASSERT_EQ(0, a);
 }
 
-TEST(MethodTests, BiToString) {
+TEST(BiOperatorTests, RMMinusMemory) {
+    BigInteger a = 180;
+    OperatorNewCounter cntr;
+    auto b = a--;
+    ASSERT_LE(cntr.get_counter(), 1);
+}
+
+TEST(BiMethodTests, ToString) {
     BigInteger a = 1791791791;
 
     ASSERT_EQ("1791791791", a.toString());
 }
 
-TEST(MethodTests, BiToStringFromString) {
+TEST(BiMethodTests, ToStringFromString) {
     string s = "476321836354832172498732156235748521692374863219823435621786345367821";
     BigInteger a = s;
 
     ASSERT_EQ(s, a.toString());
 }
 
-TEST(MethodTests, BiToStringZero) {
+TEST(BiMethodTests, ToStringZero) {
     BigInteger a = 0;
 
     ASSERT_EQ("0", a.toString());
 }
 
-TEST(MethodTests, BiToStringMoreZeroes) {
+TEST(BiMethodTests, ToStringMoreZeroes) {
     BigInteger a = 10;
     --a;
 
     ASSERT_EQ("9", a.toString());
 }
 
-TEST(MethodTests, BiToStringNeg) {
+TEST(BiMethodTests, ToStringNeg) {
     BigInteger a = -179;
 
     ASSERT_EQ("-179", a.toString());
 }
 
-TEST(MethodTests, BiToStringZeroesFromString) {
+TEST(BiMethodTests, ToStringZeroesFromString) {
     BigInteger a = "000000000179";
 
     ASSERT_EQ("179", a.toString());
 }
 
-TEST(OperatorTests, BiLLCast) {
+TEST(BiOperatorTests, LLCast) {
     BigInteger a = 1791791791;
     long long b = a;
 
     ASSERT_EQ(a, b);
 }
 
-TEST(OperatorTests, BiLLCastNeg) {
+TEST(BiOperatorTests, LLCastNeg) {
     BigInteger a = -179179179179179179l;
     long long b = a;
 
     ASSERT_EQ(a, b);
 }
 
-TEST(OperatorTests, BiLLCastTooBig) {
+TEST(BiOperatorTests, LLCastTooBig) {
     BigInteger a = "179179179179179179179179179179";
-    ASSERT_ANY_THROW(static_cast<long long>(a));
+    ASSERT_THROW(static_cast<long long>(a), TooBigCastException);
 }
 
-TEST(OperatorTests, BiULLCast) {
+TEST(BiOperatorTests, LLCastMemory) {
+    BigInteger a = 11;
+    OperatorNewCounter cntr;
+    auto b = static_cast<long long>(a);
+    ASSERT_EQ(0, cntr.get_counter());
+}
+
+TEST(BiOperatorTests, ULLCast) {
     BigInteger a = 1791791791;
     unsigned long long b = a;
     
     ASSERT_EQ(a, b);
 }
 
-TEST(OperatorTests, BiULLCastZero) {
+TEST(BiOperatorTests, ULLCastZero) {
     BigInteger a = 0;
     unsigned long long b = a;
 
     ASSERT_EQ(a, b);
 }
 
-TEST(OperatorTests, BiULLCastNegError) {
+TEST(BiOperatorTests, ULLCastNegError) {
     BigInteger a = -179;
 
-    ASSERT_ANY_THROW(static_cast<unsigned long long>(a));
+    ASSERT_THROW(static_cast<unsigned long long>(a), NegativeToUnsignedCastException);
 }
 
-TEST(OperatorTests, BiULLCastBigOK) {
+TEST(BiOperatorTests, ULLCastBigOK) {
     BigInteger a = 1e19;
-    unsigned long long b = a;
-    
+    unsigned long long b;
+
+    ASSERT_NO_THROW(b = a);
     ASSERT_EQ(a, b);
 }
 
-TEST(OperatorTests, BiULLCastTooBig) {
+TEST(BiOperatorTests, ULLCastTooBig) {
     BigInteger a = "179179179179179179179179179179";
 
-    ASSERT_ANY_THROW(static_cast<unsigned long long>(a));
+    ASSERT_THROW(static_cast<unsigned long long>(a), TooBigCastException);
 }
 
-TEST(OperatorTests, BiBoolCast) {
+TEST(BiOperatorTests, ULLCastMemory) {
+    BigInteger a = 1791791791;
+    OperatorNewCounter cntr;
+    static_cast<unsigned long long>(a);
+    ASSERT_EQ(0, cntr.get_counter());
+}
+
+TEST(BiOperatorTests, BoolCast) {
     BigInteger a = 179;
 
     ASSERT_TRUE(static_cast<bool>(a));
 }
 
-TEST(OperatorTests, BiBoolCastNeg) {
+TEST(BiOperatorTests, BoolCastNeg) {
     BigInteger a = -179;
 
     ASSERT_TRUE(static_cast<bool>(a));
 }
 
-TEST(OperatorTests, BiBoolFalse) {
+TEST(BiOperatorTests, BoolFalse) {
     BigInteger a = 0;
 
     ASSERT_FALSE(static_cast<bool>(a));
 }
 
-TEST(OperatorTests, BiEqTrue) {
+TEST(BiOperatorTests, EqTrue) {
     BigInteger a = 179;
     BigInteger b = 179;
 
     ASSERT_TRUE(a == b);
 }
 
-TEST(OperatorTests, BiEqFalse) {
+TEST(BiOperatorTests, EqFalse) {
     BigInteger a = 179;
     BigInteger b = 57;
 
     ASSERT_FALSE(a == b);
 }
 
-TEST(OperatorTests, BiEqSignedNeq) {
+TEST(BiOperatorTests, EqSignedNeq) {
     BigInteger a = 179;
     BigInteger b = -179;
 
     ASSERT_FALSE(a == b);
 }
 
-TEST(OperatorTests, BiEqTime) {
+TEST(BiOperatorTests, EqTime) {
     std::vector<BigInteger> testCases;
     for (int i = 0; i < 179; ++i) {
         testCases.push_back(random_bigint());
@@ -654,6 +710,10 @@ TEST(OperatorTests, BiEqTime) {
     }
 }
 
+TEST(BiOperatorTests, EqMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(==, 0);
+}
+
 #define TEST_SAME_OPERATOR (testingOp, correctOp) \
     for (int i = 0; i < 20; ++i) { \
         BigInteger first = random_bigint(100); \
@@ -663,7 +723,7 @@ TEST(OperatorTests, BiEqTime) {
         ASSERT_EQ(first, result); \
     }
 
-TEST(OperatorTests, BiNeqRandom) {
+TEST(BiOperatorTests, NeqRandom) {
     for (int i = 0; i < 20; ++i) {
         BigInteger first = random_bigint();
         BigInteger second = random_bigint();
@@ -671,27 +731,51 @@ TEST(OperatorTests, BiNeqRandom) {
     }
 }
 
-TEST(OperatorTests, BiPlusRandom) {
+TEST(BiOperatorTests, NeqMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(!=, 0);
+}
+
+TEST(BiOperatorTests, PlusRandom) {
     TEST_SAME_OPERATOR(+, +=);
 }
 
-TEST(OperatorTests, BiMinusRandom) {
+TEST(BiOperatorTests, PlusMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(+, 1)
+}
+
+TEST(BiOperatorTests, MinusRandom) {
     TEST_SAME_OPERATOR(-, -=);
 }
 
-TEST(OperatorTests, BiTimesRandom) {
+TEST(BiOperatorTests, MinusMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(-, 1);
+}
+
+TEST(BiOperatorTests, MultRandom) {
     TEST_SAME_OPERATOR(*, *=);
 }
 
-TEST(OperatorTests, BiDivRandom) {
+TEST(BiOperatorTests, MultMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(*, 3);
+}
+
+TEST(BiOperatorTests, DivRandom) {
     TEST_SAME_OPERATOR(/, /=);
 }
 
-TEST(OperatorTests, BiModRandom) {
+TEST(BiOperatorTests, DivMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(/, 2);
+}
+
+TEST(BiOperatorTests, ModRandom) {
     TEST_SAME_OPERATOR(%, %=);
 }
 
-TEST(OperatorTests, BiSpaceshipG) {
+TEST(BiOperatorTests, ModMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(%, 4);
+}
+
+TEST(BiOperatorTests, SpaceshipG) {
     BigInteger a = 179;
     BigInteger b = 57;
 
@@ -699,56 +783,56 @@ TEST(OperatorTests, BiSpaceshipG) {
     ASSERT_EQ(std::strong_ordering::greater, cmp);
 }
 
-TEST(OperatorTests, BiSpaceshipL) {
+TEST(BiOperatorTests, SpaceshipL) {
     BigInteger a = 57;
     BigInteger b = 179;
 
     ASSERT_EQ(std::strong_ordering::less, a <=> b);
 }
 
-TEST(OperatorTests, BiSpacesipEq) {
+TEST(BiOperatorTests, SpacesipEq) {
     BigInteger a = 179;
     BigInteger b = 179;
 
     ASSERT_EQ(std::strong_ordering::equivalent, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipGNeg) {
+TEST(BiOperatorTests, SpaceshipGNeg) {
     BigInteger a = 57;
     BigInteger b = -179;
 
     ASSERT_EQ(std::strong_ordering::greated, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipLNeg) {
+TEST(BiOperatorTests, SpaceshipLNeg) {
     BigInteger a = -179;
     BigInteger b = 57;
 
     ASSERT_EQ(std::strong_ordering::less, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipTwoNeg) {
+TEST(BiOperatorTests, SpaceshipTwoNeg) {
     BigInteger a = -179;
     BigInteger b = -57;
 
     ASSERT_EQ(std::strong_ordering::less, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipTwoNegEq) {
+TEST(BiOperatorTests, SpaceshipTwoNegEq) {
     BigInteger a = -179;
     BigInteger b = -179;
 
     ASSERT_EQ(std::strong_ordering::equivalent, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipSign) {
+TEST(BiOperatorTests, SpaceshipSign) {
     BigInteger a = 179;
     BigInteger b = -179;
 
     ASSERT_EQ(std::strong_ordering::greater, a <=> b);
 }
 
-TEST(OperatorTests, BiSpaceshipTime) {
+TEST(BiOperatorTests, SpaceshipTime) {
     int total_time = 0;
     int time_treshold = 1000000;
     for (int i = 0; i < 1000; ++i) {
@@ -764,6 +848,10 @@ TEST(OperatorTests, BiSpaceshipTime) {
     }
 }
 
+TEST(BiOperatorTests, SpaceshipMemory) {
+    CHECK_OPERATOR_ALLOCATIONS(<=>, 0);
+}
+
 #define CHECK_AGREED_WITH_INT(op) \
     for (int i = 0; i < 20; ++i) { \
         long long a = random_value(); \
@@ -773,20 +861,106 @@ TEST(OperatorTests, BiSpaceshipTime) {
         ASSERT_EQ(abi op bbi, a op b); \
     }
 
-TEST(OperatorTests, BiLe) {
+TEST(BiOperatorTests, Le) {
     CHECK_AGREED_WITH_INT(<);
 }
 
-TEST(OperatorTests, BiLeq) {
+TEST(BiOperatorTests, Leq) {
     CHECK_AGREED_WITH_INT(<=);
 }
 
-TEST(OperatorTests, BiGe) {
+TEST(BiOperatorTests, Ge) {
     CHECK_AGREED_WITH_INT(>);
 }
 
-TEST(OperatorTests, BiGeq) {
+TEST(BiOperatorTests, Geq) {
     CHECK_AGREED_WITH_INT(>=);
+}
+
+TEST(BiOperatorTests, Input) {
+    std::stringstream testStream;
+    testStream << "1791791791";
+    BigInteger a;
+    testStream >> a;
+
+    ASSERT_EQ(1791791791, a);
+}
+
+TEST(BiOperatorTests, InputNeg) {
+    std::stringstream testStream;
+    testStream << "-1791791791";
+    BigInteger a;
+    testStream >> a;
+
+    ASSERT_EQ(-1791791791, a);
+}
+
+TEST(BiOperatorTests, InputZeroes) {
+    std::stringstream testStream;
+    testStream << "0001";
+    BigInteger a;
+    testStream >> a;
+    ASSERT_EQ(1, a);
+}
+
+TEST(BiOperatorTests, InputError) {
+    std::stringstream testStream;
+    testStream << "179acb";
+    BigInteger a;
+    ASSERT_THROW(testStream >> a, InvalidInputException);
+}
+
+TEST(BiOperatorTests, Output) {
+    std::stringstream testStream;
+    BigInteger a = 1791791791;
+    testStream << a;
+    int result;
+    testStream >> result;
+    ASSERT_EQ(a, result);
+}
+
+TEST(BiOperatorTests, OutputNegative) {
+    std::stringstream ss;
+    BigInteger a = -1791791791;
+    ss << a;
+    int result;
+    ss >> result;
+    ASSERT_EQ(a, result);
+}
+
+TEST(BiOperatorTests, OutputZero) {
+    std::stringstream ss;
+    BigInteger a = 0;
+    ss << a;
+    int res;
+    ss >> res;
+    ASSERT_EQ(a, res);
+}
+
+TEST(BiOperatorTests, IORandom) {
+    std::stringstream ss;
+    for (int i = 0; i < 20; ++i) {
+        BigInteger a = random_bigint(1000);
+        ss << a;
+        BigInteger b;
+        ss >> b;
+        ASSERT_EQ(a, b);
+    }
+}
+
+TEST(BiOperatorTests, Literal) {
+    auto a = "1791791791"_bi;
+    ASSERT_EQ(1791791791, a);
+}
+
+TEST(BiOperatorTests, LiteralNeg) {
+    auto a = "-1791791791"_bi;
+    ASSERT_EQ(-1791791791, a);
+}
+
+TEST(BiOperatorTests, LiteralZero) {
+    auto a = "000000000"_bi;
+    ASSERT_EQ(0, a);
 }
 
 int main(int argc, char** argv) {

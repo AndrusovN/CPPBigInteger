@@ -21,6 +21,10 @@ class OperatorNewCounter {
     }
 
   public:
+    OperatorNewCounter() {
+        instances.insert(this);
+    }
+
     static void notify_all(size_t size) {
         for (auto item : instances) {
             item->notify(size);
