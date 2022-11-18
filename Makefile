@@ -1,7 +1,7 @@
 CC=g++ -std=c++20
 CFLAGS=-Wall -Wextra -Wpedantic -Werror
 TESTFLAGS=-lgtest -pthread --coverage
-OUTPUT=main
+OUTPUT=tests
 SOURCES=$(OUTPUT).cpp
 COVERAGE_FOLDER=coverage_report
 COVERAGE_REPORT_MAINPAGE=index.html

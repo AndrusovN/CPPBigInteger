@@ -7,11 +7,9 @@ This is a learning project for MIPT lessons. Now it's in development stage.
 
 `helper.h` is a file with functionality for testing
 
-`main.cpp` is a file with tests
+`bigint_..._tests.h` are files with tests for BigInteger class
 
-`one_file` branch is a branch where all the logic code is in one file `biginteger.h`
-
-There also will be `master` branch with code divided into different files.
+`tests.cpp` is a file to run tests
 
 To use file write `#include "biginteger.h"`
 
