@@ -9,6 +9,8 @@ This is a learning project for MIPT lessons. Now it's in development stage.
 
 `bigint_..._tests.h` are files with tests for BigInteger class
 
+`rational_tests.h` contains tests for class Rational
+
 `tests.cpp` is a file to run tests
 
 To use file write `#include "biginteger.h"`
