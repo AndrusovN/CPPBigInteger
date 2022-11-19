@@ -50,7 +50,7 @@ TEST(BiOperatorTests, EqMemory) {
 }
 
 TEST(BiOperatorTests, NeqRandom) {
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         BigInteger first = random_bigint();
         BigInteger second = random_bigint();
         ASSERT_EQ(first == second, !(first != second));

@@ -84,7 +84,7 @@ TEST(BiOperatorTests, PlusEQPosNegOverflow) {
 }
 
 TEST(BiOperatorTests, PlusEQRandom) {
-    for (auto i = 0; i < 20; ++i) {
+    for (auto i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         long long first = random_value();
         long long second = random_value();
         BigInteger a = first;
@@ -122,7 +122,7 @@ TEST(BiOperatorTests, MinusEQ) {
 }
 
 TEST(BiOperatorTests, MinusEQRandom) {
-    for (auto i = 0; i < 20; ++i) {
+    for (auto i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         long long first = random_value();
         long long second = random_value();
         BigInteger a = first;
@@ -167,7 +167,7 @@ TEST(BiOperatorTests, TimesEQZeroNeg) {
 }
 
 TEST(BiOperatorTests, TimesEQRandom) {
-    for (auto i = 0; i < 20; ++i) {
+    for (auto i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         test_mult(random_value(), random_value());
     }
 }
@@ -216,7 +216,7 @@ TEST(BiOperatorTests, DivNegNeg) {
 }
 
 TEST(BiOperatorTests, DivRandom) {
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         auto left = random_value();
         auto right = 0;
         while (right == 0) right = random_value();
@@ -268,7 +268,7 @@ TEST(BiOperatorTests, ModNegNeg) {
 }
 
 TEST(BiOperatorTests, ModRandom) {
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         long long left = random_value();
         long long right = 0;
         while (right == 0) right = random_value();

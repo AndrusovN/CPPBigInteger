@@ -172,11 +172,13 @@ class Rational {
 
     Rational& operator/=(const Rational& other);
 
+    Rational operator-();
+
     string toString() const;
 
     string asDecimal(size_t precision=0) const;
 
-    operator double() const;
+    explicit operator double() const;
 
     explicit operator bool() const;
 };
@@ -186,8 +188,6 @@ auto operator<=>(const Rational& left, const Rational& right);
 bool operator==(const BigInteger& left, const BigInteger& right);
 
 bool operator!=(const BigInteger& left, const BigInteger& right);
-
-Rational& operator-(const Rational& source);
 
 Rational operator+(const Rational& left, const Rational& right);
 

@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 mt_19937 test_random(1791791791);
+const int RANDOM_TRIES_COUNT = 20;
 
 long long random_value() {
     return test_random();
@@ -25,7 +26,7 @@ BigInteger random_bigint(int size) {
     ASSERT_LE(cnts.get_counter(), max_allocations_count);
 
 #define TEST_SAME_OPERATOR (testingOp, correctOp) \
-    for (int i = 0; i < 20; ++i) { \
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) { \
         BigInteger first = random_bigint(100); \
         BigInteger second = random_bigint(100); \
         BigInteger result = first testingOp second; \
@@ -34,7 +35,7 @@ BigInteger random_bigint(int size) {
     }
 
 #define CHECK_AGREED_WITH_INT(op) \
-    for (int i = 0; i < 20; ++i) { \
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) { \
         long long a = random_value(); \
         long long b = random_value(); \
         BigInteger abi = a; \

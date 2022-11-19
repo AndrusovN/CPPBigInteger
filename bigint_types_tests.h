@@ -252,7 +252,7 @@ TEST(BiOperatorTests, OutputZero) {
 
 TEST(BiOperatorTests, IORandom) {
     std::stringstream ss;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         BigInteger a = random_bigint(1000);
         ss << a;
         BigInteger b;
