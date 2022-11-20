@@ -1,91 +1,46 @@
 #pragma once
 
+#include <compare>
+#include <complex>
 #include <vector>
 #include <string>
 #include <iostream>
 
+#include "exceptions.h"
+
 using std::vector;
 using std::string;
+using std::strong_ordering;
 
-char* rebuild_c_string_from_string(const string& source) {
-    char* result = new char[source.size() + 1]();
-    std::copy(source.c_str(), source.c_str() + source.size(), result);
-    return result;
-}
-
-class InvalidInputException: public std::exception {
-  private:
-    string input;
-
-  public:
-    InvalidInputException(string input) : input(input) {}
-   
-   const char* what() const noexcept override {
-        auto data = "Invalid input to create BigInteger: " +
-            input + ". Expected a numerical literal";
-        return rebuild_c_string_from_string(data);
-    }
-};
-
-class DivisionByZeroException: public std::exception {
-  private:
-    BigInteger value;
-  public:
-    DivisionByZeroException(const BigInteger& value) : value(value) {}
-
-    const char* what() const noexcept override {
-        auto data = "Division by zero! Trying to divide " + value.toString() + " by zero";
-        return rebuild_c_string_from_string(data);
-    } 
-};
-
-class CastException: public std::exception {
-  private:
-    BigInteger value;
-    std::type_info cast_type;
-  protected:
-    virtual string const exception_message() {
-        return "Exception during cast. Value to cast: " + value.toString() + " type to cast: " + cast_type.name();
-
-    }
-  public:
-    CastException(const BigInteger& value, std::type_info cast_type) : value(value), cast_type(cast_type) {}
-
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }
-};
-
-class TooBigCastException: public CastException {
-  protected:
-    string exception_message() const override {
-      return "Too big cast. " + CastException::exception_message();
-    }
-  public:
-    TooBigCastException(const BigInteger& value, std::type_info cast_type) : CastException(value, cast_type) {}
-
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }
-};
-
-class NegativeToUnsignedCastException: public CastException {
-  protected:
-    string exception_message() const override {
-        return "Trying to cast negative value to unsigned type. " + CastException::exception_message();
-    }  
-  public:
-    NegativeToUnsignedCastException(const BigInteger& value, std::type_info cast_type) : CastException(value, cast_type) {}
-
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }  
-};
+using digit_t = unsigned char;
+using complex = std::complex<long double>;
 
 class BigInteger {
   private:
-    
+    static const digit_t BASE = 10;
+    vector<digit_t> digits;
+    bool negative = false;
 
+    // REWRITE IF BASE CHANGES!!!!
+    static digit_t char_to_digit(char c);
+
+    static char digit_to_char(digit_t d);
+
+    void add_absolute(const BigInteger& other);
+
+    void substract_absolute(const BigInteger& other);
+
+    strong_ordering compare_absolute(const BigInteger& other) const;
+
+    // contract: reduced is bigger than substracted
+    static void substract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& substracted, vector<digit_t>& difference);
+  
+    // Applies Fast Fourier Transform (or it's inversed form) to the vector of coefficients (or values respectively)
+    static void fft(vector<complex>& coefficients, bool inversed=false);
+    
+    static vector<digit_t> complex_to_digits(const vector<complex>& values);
+
+    static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size);
   public:
     BigInteger();
 
@@ -117,7 +72,7 @@ class BigInteger {
 
     BigInteger operator--(int);
 
-    BigInteger operator-();
+    BigInteger operator-() const;
 
     string toString() const;
     
@@ -127,7 +82,15 @@ class BigInteger {
 
     explicit operator bool() const;
 
+    size_t size() const;
+    
+    bool is_zero() const;   
+    
+    bool is_negative() const;
+
     ~BigInteger();
+
+    friend strong_ordering operator<=>(const BigInteger& left, const BigIntegr& right);
 };
 
 bool operator==(const BigInteger& left, const BigInteger& right);
@@ -148,9 +111,7 @@ std::istream& operator>>(std::istream& input, BigInteger& value);
 
 std::ostream& operator<<(std::ostream& output, const BigInteger& source);
 
-auto operator<=>(const BigInteger& left, const BigInteger& right);
-
-BigInteger& operator""_bi(unsigned long long);
+BigInteger operator""_bi(unsigned long long);
 
 class Rational {
   private:
