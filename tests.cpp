@@ -4,6 +4,7 @@
 #include <random>
 
 #include "biginteger.h"
+#include "rational.h"
 #include "helper.h"
 
 #include "bigint_tests_helper.h"

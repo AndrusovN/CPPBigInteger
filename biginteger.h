@@ -41,6 +41,8 @@ class BigInteger {
     static vector<digit_t> complex_to_digits(const vector<complex>& values);
 
     static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size);
+
+    BigInteger shift(int digits) const;
   public:
     BigInteger();
 
@@ -88,6 +90,8 @@ class BigInteger {
     
     bool is_negative() const;
 
+    void invert_sign();
+
     ~BigInteger();
 
     friend strong_ordering operator<=>(const BigInteger& left, const BigIntegr& right);
@@ -113,48 +117,5 @@ std::ostream& operator<<(std::ostream& output, const BigInteger& source);
 
 BigInteger operator""_bi(unsigned long long);
 
-class Rational {
-  private:
-
-
-  public:
-
-    Rational();
-
-    Rational(long long value);
-
-    Rational(const BigInteger& source);
-
-    Rational& operator+=(const Rational& other);
-
-    Rational& operator-=(const Rational& other);
-
-    Rational& operator*=(const Rational& other);
-
-    Rational& operator/=(const Rational& other);
-
-    Rational operator-();
-
-    string toString() const;
-
-    string asDecimal(size_t precision=0) const;
-
-    explicit operator double() const;
-
-    explicit operator bool() const;
-};
-
-auto operator<=>(const Rational& left, const Rational& right);
-
-bool operator==(const BigInteger& left, const BigInteger& right);
-
-bool operator!=(const BigInteger& left, const BigInteger& right);
-
-Rational operator+(const Rational& left, const Rational& right);
-
-Rational operator-(const Rational& left, const Rational& right);
-
-Rational operator*(const Rational& left, const Rational& right);
-
-Rational operator/(const Rational& left, const Rational& right);
+BigInteger gcd(const BigInteger& left, const BigInteger& right);
 

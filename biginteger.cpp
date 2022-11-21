@@ -221,7 +221,38 @@ BigInteger& BigInteger::operator*=(const BigInteger& other) {
     return *this;
 }
 
-BigInteger& BigInteger::operator%(const BigInteger& other) {
+BigInteger BigInteger::shift(int digits) const {
+    string characters = toString();
+    for (int i = 0; i < digits; ++i) {
+        characters.push_back('0');
+    }
+    for (int i = digits; i < 0 && characters.size(); ++i) {
+        characters.pop_back();
+    }
+    if (characters.size() == 0) characters.push_back('0');
+
+    return BigInteger(characters);
+}
+
+BigInteger& BigInteger::operator/=(const BigInteger& other) {
+    if (other.size() > size()) return *this = 0;
+
+    BigInteger result = 0;
+    auto substracted = other.shift(size() - other.size());
+    substracted.negative = negative;
+    for (size_t offset = size() - other.size(); offset != -1; --offset) {
+        result = result.shift(1);
+        while(*this > substracted) {
+            *this -= substracted;
+            ++result;
+        }
+        substracted.shift(-1);
+    }
+    result.negative ^= other.negative;
+    return *this = result;
+}
+
+BigInteger& BigInteger::operator%=(const BigInteger& other) {
     auto diff = ((*this) / other) * other;
     return *this -= diff;
 }
@@ -292,6 +323,12 @@ bool BigInteger::is_negative() const {
     return negative;
 }
 
+void invert_sign() {
+    if (is_zero()) return;
+
+    negative = !negative;
+}
+
 BigInteger::~BigInteger() {}
 
 bool operator==(const BigInteger& left, const BigInteger& right) {
@@ -352,5 +389,16 @@ strong_ordering operator<=>(const BigInteger& left, const BigInteger& right) {
 BigInteger operator""_bi(long long source) {
     BigInteger result = source;
     return result;
+}
+
+BigInteger gcd(BigInteger left, BigInteger right) {
+    BigInteger* big = &left;
+    BigInteger* small = &right;
+
+    while(!small->is_zero()) {
+        *big %= *small;
+        std::swap(small, big);
+    }
+    return *big;
 }
 

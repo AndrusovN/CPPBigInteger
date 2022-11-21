@@ -3,7 +3,7 @@
 #include <random>
 
 #include "bigint_tests_helper.h"
-#include "biginteger.h"
+#include "rational.h"
 
 double precision = 1e-14;
 
