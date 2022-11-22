@@ -40,10 +40,10 @@ class BigInteger {
     
     static vector<digit_t> complex_to_digits(const vector<complex>& values);
 
-    static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size);
-
-    BigInteger shift(int digits) const;
+    static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size); 
   public:
+    static BigInteger power(const BigInteger& indicator, const BigInteger& exponent);
+
     BigInteger();
 
     BigInteger(long long value);
@@ -91,6 +91,8 @@ class BigInteger {
     bool is_negative() const;
 
     void invert_sign();
+
+    void shift(int digits);
 
     ~BigInteger();
 

@@ -221,7 +221,7 @@ BigInteger& BigInteger::operator*=(const BigInteger& other) {
     return *this;
 }
 
-BigInteger BigInteger::shift(int digits) const {
+void BigInteger::shift(int digits) {
     string characters = toString();
     for (int i = 0; i < digits; ++i) {
         characters.push_back('0');
@@ -231,17 +231,18 @@ BigInteger BigInteger::shift(int digits) const {
     }
     if (characters.size() == 0) characters.push_back('0');
 
-    return BigInteger(characters);
+    *this = BigInteger(characters);
 }
 
 BigInteger& BigInteger::operator/=(const BigInteger& other) {
     if (other.size() > size()) return *this = 0;
 
     BigInteger result = 0;
-    auto substracted = other.shift(size() - other.size());
+    auto substracted = other;
+    auto substracted.shift(size() - other.size());
     substracted.negative = negative;
     for (size_t offset = size() - other.size(); offset != -1; --offset) {
-        result = result.shift(1);
+        result.shift(1);
         while(*this > substracted) {
             *this -= substracted;
             ++result;
@@ -323,10 +324,26 @@ bool BigInteger::is_negative() const {
     return negative;
 }
 
-void invert_sign() {
+void BigInteger::invert_sign() {
     if (is_zero()) return;
 
     negative = !negative;
+}
+
+BigInteger BigInteger::power(const BigInteger& indicator, const BigInteger& exponent) {
+    BigInteger current_power = indicator;
+    BigInteger result = 1;
+    for (auto digit : exponent.digits) {
+        for (auto t = 0; t < digit; ++t) {
+            result *= current_power;
+        }
+        BigInteger new_power = current_power;
+        for (auto t = 0; t < BASE; ++t) {
+            new_power *= current_power;
+        }
+        current_power = new_power;
+    }
+    return result;
 }
 
 BigInteger::~BigInteger() {}
