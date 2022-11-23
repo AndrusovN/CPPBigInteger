@@ -23,9 +23,9 @@ TEST(ExceptionTests, InvalidInput) {
 
 TEST(ExceptionTests, DivisionByZero) {
     try {
-        throw DivisionByZero(BigInteger(179));
+        throw DivisionByZeroException(BigInteger(179));
     } catch (std::exception& e) {
-        ASSERT_EQ("Division by zero! Trying to divide 179 by zero", string(e.what()))
+        ASSERT_EQ("Division by zero! Trying to divide 179 by zero", string(e.what()));
     }
 }
 
@@ -45,33 +45,13 @@ TEST(ExceptionTests, TooBigCast) {
     }
 }
 
-TEST(ExceptionTests, NegativeToUnsignedCast) {
-    try {
-        throw NegativeToUnsignedCastException(BigInteger(1791791791), typeid(char));
-    } catch (std::exception& e) {
-        ASSERT_EQ("Trying to cast negative value to unsigned type. Exception during cast. Value to cast: 1791791791 type to cast: c", string(e.what()));
-    }
-} 
-
 TEST(BiConstructorTests, StringException) {
-    ASSERT_THROW(BigInteger a = "179qwerty", InvalidInputException);
+    ASSERT_THROW(BigInteger a("179qwerty"), InvalidInputException);
 }
 
 TEST(BiOperatorTests, LLCastTooBig) {
-    BigInteger a = "179179179179179179179179179179";
+    BigInteger a("179179179179179179179179179179");
     ASSERT_THROW(static_cast<long long>(a), TooBigCastException);
-}
-
-TEST(BiOperatorTests, ULLCastNegError) {
-    BigInteger a = -179;
-
-    ASSERT_THROW(static_cast<unsigned long long>(a), NegativeToUnsignedCastException);
-}
-
-TEST(BiOperatorTests, ULLCastTooBig) {
-    BigInteger a = "179179179179179179179179179179";
-
-    ASSERT_THROW(static_cast<unsigned long long>(a), TooBigCastException);
 }
 
 TEST(BiOperatorTests, InputError) {

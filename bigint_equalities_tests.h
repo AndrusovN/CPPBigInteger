@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bigint_tests_helper.h"
+#include "bigint_test_helper.h"
 
 TEST(BiOperatorTests, EqTrue) {
     BigInteger a = 179;
@@ -26,7 +26,7 @@ TEST(BiOperatorTests, EqSignedNeq) {
 TEST(BiOperatorTests, EqTime) {
     std::vector<BigInteger> testCases;
     for (int i = 0; i < 179; ++i) {
-        testCases.push_back(random_bigint());
+        testCases.push_back(random_bigint(1000));
         testCases.back() -= testCases.back() % 179;
         testCases.back() += i;
     }
@@ -38,7 +38,7 @@ TEST(BiOperatorTests, EqTime) {
             Timer T;
             T.start();
             testCases[i] == testCases[j];
-            T.end();
+            T.finish();
             total_time += T.get_time_microseconds();
             ASSERT_LE(total_time, time_treshold);
         }
@@ -51,8 +51,8 @@ TEST(BiOperatorTests, EqMemory) {
 
 TEST(BiOperatorTests, NeqRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        BigInteger first = random_bigint();
-        BigInteger second = random_bigint();
+        BigInteger first = random_bigint(1000);
+        BigInteger second = random_bigint(1000);
         ASSERT_EQ(first == second, !(first != second));
     }
 }
@@ -87,7 +87,7 @@ TEST(BiOperatorTests, SpaceshipGNeg) {
     BigInteger a = 57;
     BigInteger b = -179;
 
-    ASSERT_EQ(std::strong_ordering::greated, a <=> b);
+    ASSERT_EQ(std::strong_ordering::greater, a <=> b);
 }
 
 TEST(BiOperatorTests, SpaceshipLNeg) {
@@ -127,8 +127,8 @@ TEST(BiOperatorTests, SpaceshipTime) {
 
         Timer T;
         T.start();
-        auto res = a <=> b;
-        T.end();
+        a <=> b;
+        T.finish();
         total_time += T.get_time_microseconds();
         ASSERT_LE(time_treshold, total_time);
     }

@@ -16,7 +16,7 @@ class Rational {
 
     void reduct();
 
-    BigInteger to_int_binary_shifted(long long binary_shift);
+    BigInteger to_int_binary_shifted(long long binary_shift) const;
   public:
 
     Rational();
@@ -35,7 +35,7 @@ class Rational {
 
     Rational& operator/=(const Rational& other);
 
-    Rational operator-();
+    Rational operator-() const;
 
     string toString() const;
 
@@ -48,11 +48,11 @@ class Rational {
     bool is_zero() const;
 
     bool is_negative() const;
+    
+    friend strong_ordering operator<=>(const Rational& left, const Rational& right);
 
-    friend bool operator==(const BigInteger& left, const BigInteger& right);
+    friend bool operator==(const Rational& left, const Rational& right);
 };
-
-strong_ordering operator<=>(const Rational& left, const Rational& right);
 
 bool operator!=(const BigInteger& left, const BigInteger& right);
 

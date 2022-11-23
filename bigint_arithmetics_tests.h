@@ -46,7 +46,7 @@ TEST(BiOperatorTests, PlusEQ) {
     BigInteger a = 179;
     a += 179;
     
-    ASSERT_EQ(179l+179l, a);
+    ASSERT_EQ(179+179, a);
 }
 
 TEST(BiOperatorTests, PlusEQNeg) {
@@ -102,7 +102,7 @@ TEST(BiOperatorTests, PlusEQTime) {
         Timer T;
         T.start();
         first += second;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -182,14 +182,14 @@ TEST(BiOperatorTests, TimesEQTime) {
         Timer T;
         T.start();
         first *= second;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
 }
 
 TEST(BiOperatorTests, TimesEqMemory) {
-    CHECK_OPERATOR_ALLOCATES(*=, 2);
+    CHECK_OPERATOR_ALLOCATIONS(*=, 2);
 }
 
 void test_division(long long left, long long right) {
@@ -208,14 +208,14 @@ TEST(BiOperatorTests, DivNeg) {
 }
 
 TEST(BiOperatorTests, DivPosNeg) {
-    test_division(-179, 57)
+    test_division(-179, 57);
 }
 
 TEST(BiOperatorTests, DivNegNeg) {
     test_division(-179, -57);
 }
 
-TEST(BiOperatorTests, DivRandom) {
+TEST(BiOperatorTests, DivEqRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         auto left = random_value();
         auto right = 0;
@@ -234,13 +234,13 @@ TEST(BiOperatorTests, DivTime) {
         Timer T;
         T.start();
         first /= second;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
 }
 
-TEST(BiOperatorTests, DivMemory) {
+TEST(BiOperatorTests, DivEqMemory) {
     CHECK_OPERATOR_ALLOCATIONS(/=, 1);
 }
 
@@ -267,7 +267,7 @@ TEST(BiOperatorTests, ModNegNeg) {
     test_modulus(-179, -179);
 }
 
-TEST(BiOperatorTests, ModRandom) {
+TEST(BiOperatorTests, ModEqRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
         long long left = random_value();
         long long right = 0;
@@ -277,7 +277,7 @@ TEST(BiOperatorTests, ModRandom) {
     }
 }
 
-TEST(BiOperatorTests, ModTime) {
+TEST(BiOperatorTests, ModEqTime) {
     int total_time = 0;
     int time_treshold = 2000;
 
@@ -287,13 +287,13 @@ TEST(BiOperatorTests, ModTime) {
         Timer T;
         T.start();
         first %= second;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
 }
 
-TEST(BiOperatorTests, ModMemory) {
+TEST(BiOperatorTests, ModEqMemory) {
     CHECK_OPERATOR_ALLOCATIONS(%=, 3);
 }
 
@@ -330,11 +330,11 @@ TEST(BiOperatorTests, LPPlusTime) {
         BigInteger first = random_bigint(1e5);
         T.start();
         
-        for (int j = 0; j < 1e5; ++j) 
+        for (int j = 0; j < 1e5; ++j) {
             ++first;
         }
 
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -368,7 +368,7 @@ TEST(BiOperatorTests, RPPlusNegZero) {
 TEST(BiOperatorTests, RPPlusMemory) {
     BigInteger a = 179;
     OperatorNewCounter cntr;
-    b = a++;
+    BigInteger b = a++;
     ASSERT_LE(cntr.get_counter(), 1);
 }
 
@@ -405,11 +405,11 @@ TEST(BiOperatorTests, LMMinusTime) {
         BigInteger first = random_bigint(1e5);
         T.start();
         
-        for (int j = 0; j < 1e5; ++j) 
+        for (int j = 0; j < 1e5; ++j) {
             --first;
         }
 
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }

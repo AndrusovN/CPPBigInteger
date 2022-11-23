@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "bigint_tests_helper.h"
+#include "bigint_test_helper.h"
 
 TEST(BiConstructorTests, Default) {
     BigInteger a;
@@ -22,13 +22,6 @@ TEST(BiConstructorTests, LLNegative) {
     ASSERT_EQ(value, a);
 }
 
-TEST(BiConstructorTests, ULL) {
-    unsigned long long value = 888888888888888888ull;
-    BigInteger a = value;
-
-    ASSERT_EQ(value, a);
-}
-
 TEST(BiConstructorTests, CopyConstructor) {
     BigInteger a(179);
     BigInteger b = a;
@@ -45,25 +38,25 @@ TEST(BiConstructorTests, CopyNegative) {
 
 TEST(BiConstructorTests, StringPositive) {
     int num = 1791791791;
-    BigInteger a = std::to_string(num);
+    BigInteger a(std::to_string(num));
     
     ASSERT_EQ(num, a);
 }
 
 TEST(BiConstructorTests, StringZeroes) {
-    BigInteger a = "00000";
+    BigInteger a("00000");
 
     ASSERT_EQ(0, a);
 }
 
 TEST(BiConstructorTests, StringNegative) {
-    BigInteger a = "-179";
+    BigInteger a("-179");
 
     ASSERT_EQ(-179, a);
 }
 
 TEST(BiConstructorTests, StringZeroesBegin) {
-    BigInteger a = "000179";
+    BigInteger a("000179");
 
     ASSERT_EQ(179, a);
 }
@@ -99,7 +92,7 @@ TEST(BiMethodTests, ToString) {
 
 TEST(BiMethodTests, ToStringFromString) {
     string s = "476321836354832172498732156235748521692374863219823435621786345367821";
-    BigInteger a = s;
+    BigInteger a(s);
 
     ASSERT_EQ(s, a.toString());
 }
@@ -124,21 +117,21 @@ TEST(BiMethodTests, ToStringNeg) {
 }
 
 TEST(BiMethodTests, ToStringZeroesFromString) {
-    BigInteger a = "000000000179";
+    BigInteger a("000000000179");
 
     ASSERT_EQ("179", a.toString());
 }
 
 TEST(BiOperatorTests, LLCast) {
     BigInteger a = 1791791791;
-    long long b = a;
+    long long b = static_cast<long long>(a);
 
     ASSERT_EQ(a, b);
 }
 
 TEST(BiOperatorTests, LLCastNeg) {
-    BigInteger a = -179179179179179179l;
-    long long b = a;
+    BigInteger a = -179179179179179179ll;
+    long long b = static_cast<long long>(a);
 
     ASSERT_EQ(a, b);
 }
@@ -146,36 +139,7 @@ TEST(BiOperatorTests, LLCastNeg) {
 TEST(BiOperatorTests, LLCastMemory) {
     BigInteger a = 11;
     OperatorNewCounter cntr;
-    auto b = static_cast<long long>(a);
-    ASSERT_EQ(0, cntr.get_counter());
-}
-
-TEST(BiOperatorTests, ULLCast) {
-    BigInteger a = 1791791791;
-    unsigned long long b = a;
-    
-    ASSERT_EQ(a, b);
-}
-
-TEST(BiOperatorTests, ULLCastZero) {
-    BigInteger a = 0;
-    unsigned long long b = a;
-
-    ASSERT_EQ(a, b);
-}
-
-TEST(BiOperatorTests, ULLCastBigOK) {
-    BigInteger a = 1e19;
-    unsigned long long b;
-
-    ASSERT_NO_THROW(b = a);
-    ASSERT_EQ(a, b);
-}
-
-TEST(BiOperatorTests, ULLCastMemory) {
-    BigInteger a = 1791791791;
-    OperatorNewCounter cntr;
-    static_cast<unsigned long long>(a);
+    static_cast<long long>(a);
     ASSERT_EQ(0, cntr.get_counter());
 }
 
@@ -262,17 +226,12 @@ TEST(BiOperatorTests, IORandom) {
 }
 
 TEST(BiOperatorTests, Literal) {
-    auto a = "1791791791"_bi;
+    auto a = 1791791791_bi;
     ASSERT_EQ(1791791791, a);
 }
 
-TEST(BiOperatorTests, LiteralNeg) {
-    auto a = "-1791791791"_bi;
-    ASSERT_EQ(-1791791791, a);
-}
-
 TEST(BiOperatorTests, LiteralZero) {
-    auto a = "000000000"_bi;
+    auto a = 000000000_bi;
     ASSERT_EQ(0, a);
 }
 

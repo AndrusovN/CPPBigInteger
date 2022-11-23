@@ -2,7 +2,7 @@
 #include <sstream>
 #include <random>
 
-#include "bigint_tests_helper.h"
+#include "bigint_test_helper.h"
 #include "rational.h"
 
 double precision = 1e-14;
@@ -10,7 +10,7 @@ double precision = 1e-14;
 Rational random_rational(size_t size) {
     Rational a = random_bigint(size);
     BigInteger b = 0;
-    while(b == 0) b = random_bigint();
+    while(b == 0_bi) b = random_bigint(size);
     a /= b;
     return a;
 }
@@ -103,7 +103,7 @@ TEST(RatOperatorTests, PlusEqNegToPos) {
     ASSERT_EQ(c, a);
 }
 
-TEST(RatOperatorTests, PlusEqNegToNeg) {
+TEST(RatOperatorTests, PlusEqNegToNeg2) {
     Rational a = -1;
     a /= 3;
     Rational b = 1;
@@ -132,7 +132,7 @@ TEST(RatOperatorTests, PlusEqTime) {
         Timer T;
         T.start();
         a += b;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -206,7 +206,7 @@ TEST(RatOperatorTests, MultEqTime) {
         Timer T;
         T.start();
         a *= b;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(time_treshold, total_time);
     }
@@ -252,7 +252,7 @@ TEST(RatOperatorTests, DivEqTime) {
         Timer T;
         T.start();
         a /= b;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -356,8 +356,9 @@ TEST(RatOperatorTests, DoubleCast) {
 
 TEST(RatOperatorTests, DoubleCastRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational r = random_bigint(18);
-        double d = static_cast<long long>(r);
+        BigInteger numerator = random_bigint(18);
+        double d = static_cast<long long>(numerator);
+        Rational r = numerator;
         BigInteger denom = 0;
         while (denom == 0) denom = random_bigint(18);
         d /= static_cast<long long>(denom);
@@ -375,7 +376,7 @@ TEST(RatOperatorTests, BoolCastTrue) {
 }
 
 TEST(RatOperatorTests, BoolCastFalse) {
-    Rational = 0;
+    Rational a = 0;
     ASSERT_FALSE(static_cast<bool>(a));
 }
 
@@ -452,7 +453,7 @@ TEST(RatOperatorTests, SpaceshipTime) {
         Timer T;
         T.start();
         a <=> b;
-        T.end();
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -546,8 +547,8 @@ TEST(RatOperatorTests, EqTime) {
         Rational b = random_rational(100'000);
         Timer T;
         T.start();
-        bool res = a == b;
-        T.end();
+        a == b;
+        T.finish();
         total_time += T.get_time_milliseconds();
         ASSERT_LE(total_time, time_treshold);
     }
@@ -575,14 +576,14 @@ TEST(RatOperatorTests, PlusRandom) {
 }
 
 TEST(RatOperatorTests, MinusRandom) {
-    CHECK_SAME_OPERATOR(-, -=);
+    CHECK_SAME_OPERATOR_RAT(-, -=);
 }
 
 TEST(RatOperatorTests, MultRandom) {
-    CHECK_SAME_OPERATOR(*, *=);
+    CHECK_SAME_OPERATOR_RAT(*, *=);
 }
 
 TEST(RatOperatorTests, DivRandom) {
-    CHECK_SAME_OPERATOR(/, /=);
+    CHECK_SAME_OPERATOR_RAT(/, /=);
 }
 

@@ -3,7 +3,7 @@
 #include <random>
 #include <gtest/gtest.h>
 
-mt_19937 test_random(1791791791);
+std::mt19937 test_random(1791791791);
 const int RANDOM_TRIES_COUNT = 20;
 
 long long random_value() {
@@ -23,9 +23,9 @@ BigInteger random_bigint(int size) {
     BigInteger b = 228; \
     OperatorNewCounter cntr; \
     a op b; \
-    ASSERT_LE(cnts.get_counter(), max_allocations_count);
+    ASSERT_LE(cntr.get_counter(), max_allocations_count);
 
-#define TEST_SAME_OPERATOR (testingOp, correctOp) \
+#define TEST_SAME_OPERATOR(testingOp, correctOp) \
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) { \
         BigInteger first = random_bigint(100); \
         BigInteger second = random_bigint(100); \

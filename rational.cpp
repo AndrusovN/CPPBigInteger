@@ -77,7 +77,7 @@ string Rational::asDecimal(size_t precision) const {
     return result;
 }
 
-BigInteger Rational::to_int_binary_shifted(long long binary_shift) {
+BigInteger Rational::to_int_binary_shifted(long long binary_shift) const {
     BigInteger exponent = BigInteger::power(2, abs(binary_shift));
     BigInteger result = numerator;
     if (binary_shift < 0) {
@@ -126,10 +126,9 @@ bool Rational::is_negative() const {
 }
 
 strong_ordering operator<=>(const Rational& left, const Rational& right) {
-    auto diff = left - right;
-    if (diff.is_negative()) return strong_ordering::less;
-    if (diff.is_zero()) return strong_ordering::equivalent;
-    return strong_ordering::greater;
+    auto left_bi = left.numerator * right.denominator;
+    auto right_bi = right.numerator * left.denominator;
+    return left_bi <=> right_bi;
 }
 
 bool operator==(const Rational& left, const Rational& right) {

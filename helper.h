@@ -1,3 +1,5 @@
+#pragma once
+
 #include <chrono>
 #include <gtest/gtest.h>
 #include <iostream>

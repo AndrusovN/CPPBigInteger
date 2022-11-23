@@ -6,13 +6,11 @@
 #include <string>
 #include <iostream>
 
-#include "exceptions.h"
-
 using std::vector;
 using std::string;
 using std::strong_ordering;
 
-using digit_t = unsigned char;
+using digit_t = char;
 using complex = std::complex<long double>;
 
 class BigInteger {
@@ -48,11 +46,9 @@ class BigInteger {
 
     BigInteger(long long value);
 
-    BigInteger(unsigned long long value);
-
     BigInteger(const BigInteger& source);
 
-    BigInteger(const string& source);
+    explicit BigInteger(const string& source);
 
     BigInteger& operator=(const BigInteger& source);
 
@@ -70,7 +66,7 @@ class BigInteger {
 
     BigInteger operator++(int);
 
-    BigInteger operator--();
+    BigInteger& operator--();
 
     BigInteger operator--(int);
 
@@ -78,9 +74,7 @@ class BigInteger {
 
     string toString() const;
     
-    operator long long() const;
-
-    operator unsigned long long() const;
+    explicit operator long long() const;
 
     explicit operator bool() const;
 
@@ -96,7 +90,7 @@ class BigInteger {
 
     ~BigInteger();
 
-    friend strong_ordering operator<=>(const BigInteger& left, const BigIntegr& right);
+    friend strong_ordering operator<=>(const BigInteger& left, const BigInteger& right);
 };
 
 bool operator==(const BigInteger& left, const BigInteger& right);
@@ -119,5 +113,5 @@ std::ostream& operator<<(std::ostream& output, const BigInteger& source);
 
 BigInteger operator""_bi(unsigned long long);
 
-BigInteger gcd(const BigInteger& left, const BigInteger& right);
+BigInteger gcd(BigInteger left, BigInteger right);
 

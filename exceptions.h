@@ -3,78 +3,53 @@
 #include <exception>
 #include <iostream>
 
-char* rebuild_c_string_from_string(const string& source) {
-    char* result = new char[source.size() + 1]();
-    std::copy(source.c_str(), source.c_str() + source.size(), result);
-    return result;
-}
+#include "biginteger.h"
+
+using std::string;
+
+char* rebuild_c_string_from_string(const string& source);
 
 class InvalidInputException: public std::exception {
   private:
     string input;
 
   public:
-    InvalidInputException(string input) : input(input) {}
+    InvalidInputException(string input);
    
-   const char* what() const noexcept override {
-        auto data = "Invalid input to create BigInteger: " +
-            input + ". Expected a numerical literal";
-        return rebuild_c_string_from_string(data);
-    }
+   const char* what() const noexcept override;
 };
 
 class DivisionByZeroException: public std::exception {
   private:
     BigInteger value;
   public:
-    DivisionByZeroException(const BigInteger& value) : value(value) {}
-
-    const char* what() const noexcept override {
-        auto data = "Division by zero! Trying to divide " + value.toString() + " by zero";
-        return rebuild_c_string_from_string(data);
-    } 
+    DivisionByZeroException(const BigInteger& value);
+    const char* what() const noexcept override;
 };
 
 class CastException: public std::exception {
   private:
     BigInteger value;
-    std::type_info cast_type;
+    const std::type_info& cast_type;
   protected:
-    virtual string const exception_message() {
-        return "Exception during cast. Value to cast: " + value.toString() + " type to cast: " + cast_type.name();
-
-    }
+    virtual string exception_message() const;
   public:
-    CastException(const BigInteger& value, std::type_info cast_type) : value(value), cast_type(cast_type) {}
+    CastException(const BigInteger& value, const std::type_info& cast_type);
 
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }
+    const char* what() const noexcept override;
 };
 
 class TooBigCastException: public CastException {
   protected:
-    string exception_message() const override {
-      return "Too big cast. " + CastException::exception_message();
-    }
+    string exception_message() const override;
   public:
-    TooBigCastException(const BigInteger& value, std::type_info cast_type) : CastException(value, cast_type) {}
-
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }
+    TooBigCastException(const BigInteger& value, const std::type_info& cast_type);
 };
 
 class NegativeToUnsignedCastException: public CastException {
   protected:
-    string exception_message() const override {
-        return "Trying to cast negative value to unsigned type. " + CastException::exception_message();
-    }  
+    string exception_message() const override;
   public:
-    NegativeToUnsignedCastException(const BigInteger& value, std::type_info cast_type) : CastException(value, cast_type) {}
-
-    const char* what() const noexcept override {
-        return rebuild_c_string_from_string(exception_message());
-    }  
+    NegativeToUnsignedCastException(const BigInteger& value, const std::type_info& cast_type);
 };
 
