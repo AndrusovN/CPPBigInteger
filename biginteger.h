@@ -39,6 +39,8 @@ class BigInteger {
     static vector<digit_t> complex_to_digits(const vector<complex>& values);
 
     static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size); 
+
+    static void clear_leading_zeroes(vector<digit_t>& digits);
   public:
     static BigInteger power(const BigInteger& indicator, const BigInteger& exponent);
 

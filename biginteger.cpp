@@ -17,7 +17,7 @@ char BigInteger::digit_to_char(digit_t d) {
 }
 
 bool BigInteger::is_zero() const {
-    return size() == 0 && digits[0] == 0;
+    return size() == 1 && digits[0] == 0;
 }
 
 strong_ordering BigInteger::compare_absolute(const BigInteger& other) const {
@@ -66,8 +66,7 @@ void BigInteger::substract_vectors(const vector<digit_t>& reduced, const vector<
         }
     }
 
-    while(difference.size() > 1 && difference.back() == 0) difference.pop_back();
-    
+    clear_leading_zeroes(difference);
     assert(carry == 0);
 }
 
@@ -84,6 +83,10 @@ void BigInteger::substract_absolute(const BigInteger& other) {
     } else {
         substract_vectors(digits, other.digits, digits);
     }
+}
+
+void BigInteger::clear_leading_zeroes(vector<digit_t>& digits) {
+    while(digits.size() > 1 && digits.back() == 0) digits.pop_back();
 }
 
 BigInteger::BigInteger() : BigInteger(0) {}
@@ -113,6 +116,7 @@ BigInteger::BigInteger(const string& source) {
     for (size_t i = source.size(); i > offset; --i) {
         digits[source.size() - i] = char_to_digit(source[i - 1]);
     }
+    clear_leading_zeroes(digits);
 }
 
 BigInteger& BigInteger::operator=(const BigInteger& source) {
@@ -170,7 +174,7 @@ vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     // it should always contain enough zero digits to contain all the carry
     assert(carry == 0);
     
-    while(result.size() > 1 && result.back() == 0) result.pop_back();
+    clear_leading_zeroes(result);
 
     return result;
 }
@@ -227,6 +231,7 @@ void BigInteger::shift(int digits) {
 }
 
 BigInteger& BigInteger::operator/=(const BigInteger& other) {
+    if (other.is_zero()) throw DivisionByZeroException(*this);
     if (other.size() > size()) return *this = 0;
 
     BigInteger result = 0;
