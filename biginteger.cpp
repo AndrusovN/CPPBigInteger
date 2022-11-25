@@ -2,9 +2,18 @@
 #include <limits>
 #include "biginteger.h"
 #include "exceptions.h"
+#include <math.h>
+
+
+BigInteger longMin = BigInteger(std::numeric_limits<long long>::min());
+BigInteger longMax = BigInteger(std::numeric_limits<long long>::max()); 
 
 size_t BigInteger::size() const {
     return digits.size();
+}
+
+void BigInteger::resolve_sign() {
+    if (is_zero()) negative = false;
 }
 
 digit_t BigInteger::char_to_digit(char c) {
@@ -31,9 +40,25 @@ strong_ordering BigInteger::compare_absolute(const BigInteger& other) const {
     return strong_ordering::equivalent;
 }
 
+void BigInteger::resolve_carry(int carry, size_t index) {
+    while(carry != 0) {
+        if (index == size()) digits.push_back(0);
+        carry += digits[index];
+        digits[index] = carry % BASE;
+        if (carry < 0) {
+            digits[index] += BASE;
+            carry /= BASE;
+            --carry;
+        } else {
+            carry /= BASE;
+        }
+        ++index;
+    }
+}
+
 void BigInteger::add_absolute(const BigInteger& other) {
     digit_t carry = 0;
-    digits.reserve(other.size());
+    digits.reserve(other.size() + 1);
 
     for (size_t i = 0; i < other.size(); ++i) {
         if (i == size()) digits.push_back(0);
@@ -42,7 +67,7 @@ void BigInteger::add_absolute(const BigInteger& other) {
         carry = digits[i] / BASE;
         digits[i] %= BASE;
     }
-    if (carry > 0) digits.push_back(carry);
+    resolve_carry(carry, other.size());
 }
 
 void BigInteger::substract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& substracted, vector<digit_t>& difference) {
@@ -53,16 +78,18 @@ void BigInteger::substract_vectors(const vector<digit_t>& reduced, const vector<
     digit_t carry = 0;
     for (size_t i = 0; i < reduced.size(); ++i) {
         if (i == difference.size()) difference.push_back(0);
-
-        difference[i] = reduced[i] - carry;
-        if (i < substracted.size()) {
-            difference[i] -= substracted[i];
-        }
-
+                
+        digit_t to_substract = (i < substracted.size()) ? substracted[i] : 0;
+        
+        difference[i] = reduced[i] - carry - to_substract;
         carry = 0;
         if (difference[i] < 0) {
             difference[i] += BASE;
             carry = 1;
+        }
+
+        if (i >= substracted.size() && carry == 0) {
+            if (&difference == &reduced) break;
         }
     }
 
@@ -92,14 +119,20 @@ void BigInteger::clear_leading_zeroes(vector<digit_t>& digits) {
 BigInteger::BigInteger() : BigInteger(0) {}
 
 BigInteger::BigInteger(long long value) {
+    bool special_case = false;
     if (value < 0) {
         negative = true;
+        if (value == std::numeric_limits<long long>::min()) {
+            special_case = true;
+            ++value;
+        }
         value = -value;
     }
     do {
         digits.push_back(value % BASE);
         value /= BASE;
     } while(value > 0);
+    if (special_case) --*this;
 }
 
 BigInteger::BigInteger(const BigInteger& source) 
@@ -129,7 +162,7 @@ BigInteger& BigInteger::operator=(const BigInteger& source) {
 }
 
 BigInteger& BigInteger::operator+=(const BigInteger& other) {
-    if (negative != other.negative) {
+    if (negative == other.negative) {
         add_absolute(other);
     } else {
         substract_absolute(other);
@@ -138,7 +171,7 @@ BigInteger& BigInteger::operator+=(const BigInteger& other) {
 }
 
 BigInteger& BigInteger::operator-=(const BigInteger& other) {
-    if (negative != other.negative) {
+    if (negative == other.negative) {
         substract_absolute(other);
     } else {
         add_absolute(other);
@@ -165,7 +198,7 @@ vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     vector<digit_t> result(values.size(), 0);
     int carry = 0;
     for (size_t i = 0; i < result.size(); ++i) {
-        carry += static_cast<digit_t>(values[i].real() + 0.5);
+        carry += static_cast<int>(values[i].real() + 0.5);
         result[i] = carry % BASE;
         carry /= BASE;
     }
@@ -179,38 +212,81 @@ vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     return result;
 }
 
+size_t revert_binary(size_t index, size_t length) {
+    size_t result = 0;
+    for (size_t i = 0; i < length; ++i) {
+        if ((index >> i) & 1) {
+            result |= (1 << (length - i - 1));
+        }
+    }
+    return result;
+}
+
+void BigInteger::reorder_items_for_fft(vector<complex>& source) {
+    size_t length = 0;
+    while((1u << length) < source.size()) ++length;
+
+    for (size_t i = 0; i < source.size(); ++i) {
+        if (i < revert_binary(i, length)) {
+            std::swap(source[i], source[revert_binary(i, length)]);
+        }
+    }
+}
+
 void BigInteger::fft(vector<complex>& source, bool inversed) {
     complex root_coefficient = complex(-1.0, inversed ? -0.0 : 0.0);
 
+    reorder_items_for_fft(source);
+
     for (size_t block_length = 2; block_length <= source.size(); block_length *= 2) {
+        long double angle = 2 * M_PI / block_length * (inversed ? -1 : 1);
+        root_coefficient = complex(cosl(angle), sinl(angle));
+
         for (size_t block_id = 0; block_id < source.size() / block_length; ++block_id) {
             size_t left_part = block_id * block_length;
             size_t right_part = left_part + block_length / 2;
+           
+            complex current_root = 1;
+
             for (size_t i = 0; i < block_length / 2; ++i) {
-                complex first = source[left_part + i] + root_coefficient * source[right_part + i];
-                complex second = source[left_part + i] - root_coefficient * source[right_part + i];
+                complex first = source[left_part + i] + current_root * source[right_part + i];
+                complex second = source[left_part + i] - current_root * source[right_part + i];
                 source[left_part + i] = first;
                 source[right_part + i] = second;
+                current_root *= root_coefficient;
             } 
         }
-        root_coefficient = std::sqrt(root_coefficient);
+        //root_coefficient = std::sqrt(root_coefficient);
+    }
+
+    if (inversed) {
+        for (size_t i = 0; i < source.size(); ++i) {
+            source[i] /= source.size();
+        }
     }
 }
 
 BigInteger& BigInteger::operator*=(const BigInteger& other) {
+    //std::cout << "timeseq" << std::endl;
     auto my_complex_values = digits_to_complex(digits, size() + other.size());
+    //std::cout << "first fft" << std::endl;
     fft(my_complex_values);
-     
+    //std::cout << "first fft finished" << std::endl;
     auto other_complex_values = digits_to_complex(other.digits, size() + other.size());
+    //std::cout << "second fft" << std::endl;
     fft(other_complex_values);
+    //std::cout << "second fft finished" << std::endl;
 
     for (size_t i = 0; i < my_complex_values.size(); ++i) {
         my_complex_values[i] *= other_complex_values[i];
     }
 
+    //std::cout << "third fft" << std::endl;
     fft(my_complex_values, true);
+    //std::cout << "third fft finished" << std::endl;
 
     digits = std::move(complex_to_digits(my_complex_values));
+    //std::cout << "saved" << std::endl;
     negative ^= other.negative;
     if (is_zero() || other.is_zero()) negative = false;
 
@@ -233,30 +309,35 @@ void BigInteger::shift(int digits) {
 BigInteger& BigInteger::operator/=(const BigInteger& other) {
     if (other.is_zero()) throw DivisionByZeroException(*this);
     if (other.size() > size()) return *this = 0;
-
+    bool old_negative = negative;
     BigInteger result = 0;
     auto substracted = other;
     substracted.shift(size() - other.size());
     substracted.negative = negative;
     for (size_t offset = size() - other.size(); offset + 1 > 0; --offset) {
         result.shift(1);
-        while(*this > substracted) {
+        while(compare_absolute(substracted) >= 0) {
             *this -= substracted;
             ++result;
         }
         substracted.shift(-1);
     }
-    result.negative ^= other.negative;
+    result.negative = result.is_zero() ? false : (other.negative ^ old_negative);
     return *this = result;
 }
 
 BigInteger& BigInteger::operator%=(const BigInteger& other) {
-    auto diff = ((*this) / other) * other;
+    auto diff = ((*this) / other);
+    
+    diff *= other;
     return *this -= diff;
 }
 
 BigInteger& BigInteger::operator++() {
-    return *this += 1;
+    resolve_carry(negative ? -1 : 1, 0);
+    resolve_sign();
+    clear_leading_zeroes(digits);
+    return *this;
 }
 
 BigInteger BigInteger::operator++(int) {
@@ -266,7 +347,10 @@ BigInteger BigInteger::operator++(int) {
 }
 
 BigInteger& BigInteger::operator--() {
-    return *this -= 1;
+    resolve_carry(negative ? 1 : -1, 0);
+    resolve_sign();
+    clear_leading_zeroes(digits);
+    return *this;
 }
 
 BigInteger BigInteger::operator--(int) {
@@ -292,9 +376,9 @@ string BigInteger::toString() const {
 }
 
 BigInteger::operator long long() const {
-    BigInteger longMin = static_cast<BigInteger>(std::numeric_limits<long long>::min());
-    BigInteger longMax = static_cast<BigInteger>(std::numeric_limits<long long>::max());
-    if (*this < longMin || longMax < *this) throw TooBigCastException(*this, typeid(long long));
+    if (*this < longMin || longMax < *this) {
+        throw TooBigCastException(*this, typeid(long long));
+    }
 
     long long result = 0;
     long long power = 1;

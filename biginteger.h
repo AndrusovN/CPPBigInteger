@@ -13,6 +13,8 @@ using std::strong_ordering;
 using digit_t = char;
 using complex = std::complex<long double>;
 
+size_t revert_binary(size_t index, size_t length);
+
 class BigInteger {
   private:
     static const digit_t BASE = 10;
@@ -41,6 +43,12 @@ class BigInteger {
     static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size); 
 
     static void clear_leading_zeroes(vector<digit_t>& digits);
+
+    static void reorder_items_for_fft(vector<complex>& source);
+
+    void resolve_carry(int carry, size_t index);
+
+    void resolve_sign();
   public:
     static BigInteger power(const BigInteger& indicator, const BigInteger& exponent);
 

@@ -7,15 +7,15 @@ std::mt19937 test_random(1791791791);
 const int RANDOM_TRIES_COUNT = 20;
 
 long long random_value() {
-    return test_random();
+    return (test_random() % static_cast<long long>(1e9 + 7));
 }
 
-BigInteger random_bigint(int size) {
-    BigInteger value = 1;
-    for (int i = 0; i < size / 9; ++i) {
-        value *= random_value();
+BigInteger random_bigint(size_t size) {
+    string value = "";
+    for (size_t i = 0; i < size; ++i) {
+        value += '0' + (abs(random_value()) % 10);
     }
-    return value;
+    return BigInteger(value);
 }
 
 #define CHECK_OPERATOR_ALLOCATIONS(op, max_allocations_count) \

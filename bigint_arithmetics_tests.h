@@ -95,16 +95,16 @@ TEST(BiOperatorTests, PlusEQRandom) {
 
 TEST(BiOperatorTests, PlusEQTime) {
     int total_time = 0;
-    int time_treshold = 1000;
-    for (int i = 0; i < 100; ++i) {
-        BigInteger first = random_bigint(1e5);
-        BigInteger second = random_bigint(1e5);
+    int time_treshold = 1000000;
+    for (int i = 0; i < 2000; ++i) {
+        BigInteger first = random_bigint(1e4);
+        BigInteger second = random_bigint(1e4);
         Timer T;
         T.start();
         first += second;
         T.finish();
-        total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 1000";
     }
 }
 
@@ -174,7 +174,7 @@ TEST(BiOperatorTests, TimesEQRandom) {
 
 TEST(BiOperatorTests, TimesEQTime) {
     int total_time = 0;
-    int time_treshold = 2000;
+    int time_treshold = 3000;
 
     for (int i = 0; i < 100; ++i) {
         auto first = random_bigint(1e4);
@@ -184,7 +184,7 @@ TEST(BiOperatorTests, TimesEQTime) {
         first *= second;
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " of 100 iterations";
     }
 }
 
@@ -323,20 +323,20 @@ TEST(BiOperatorTests, LPPlusDoublePlus) {
 
 TEST(BiOperatorTests, LPPlusTime) {
     int total_time = 0;
-    int time_treshold = 1000;
+    int time_treshold = 1500000;
     
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         Timer T;
-        BigInteger first = random_bigint(1e5);
+        BigInteger first = random_bigint(9);
         T.start();
         
-        for (int j = 0; j < 1e5; ++j) {
+        for (int j = 0; j < 1e3; ++j) {
             ++first;
         }
 
         T.finish();
-        total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(total_time, time_treshold) << i << " of 10000 iterations";
     }
 }
 
@@ -398,11 +398,11 @@ TEST(BiOperatorTests, LMMinusDoubleMinus) {
 
 TEST(BiOperatorTests, LMMinusTime) {
     int total_time = 0;
-    int time_treshold = 1000;
+    int time_treshold = 1500;
     
     for (int i = 0; i < 100; ++i) {
         Timer T;
-        BigInteger first = random_bigint(1e5);
+        BigInteger first = random_bigint(1e2);
         T.start();
         
         for (int j = 0; j < 1e5; ++j) {
@@ -411,7 +411,7 @@ TEST(BiOperatorTests, LMMinusTime) {
 
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " of 100 iterations";
     }
 }
 
@@ -447,4 +447,168 @@ TEST(BiOperatorTests, RMMinusMemory) {
     ASSERT_LE(cntr.get_counter(), 1);
 }
 
+TEST(BiMethodsTests, Power) {
+    BigInteger a = BigInteger::power(2, 6);
+    ASSERT_EQ(a, 64);
+}
+
+TEST(BiMethodsTests, PowerZero) {
+    BigInteger a = BigInteger::power(2, 0);
+    ASSERT_EQ(1, a);
+}
+
+TEST(BiMethodsTests, PowerOne) {
+    BigInteger a = BigInteger::power(1, 1791791791);
+    ASSERT_EQ(1, a);
+}
+
+TEST(BiMethodsTests, NegPower) {
+    BigInteger a = BigInteger::power(-2, 5);
+    ASSERT_EQ(-32, a);
+}
+
+TEST(BiMethodsTests, NegEvenPower) {
+    BigInteger a = BigInteger::power(-2, 8);
+    ASSERT_EQ(256, a);
+}
+
+TEST(BiMethodsTests, ZeroPower) {
+    BigInteger a = BigInteger::power(0, 1791791791);
+    ASSERT_EQ(0, a);
+}
+
+TEST(BiMethodsTests, PowerTime) {
+    int time_treshold = 2500;
+    int total_time = 0;
+
+    for (size_t i = 0; i < 100; ++i) {
+        Timer T;
+        T.start();
+        BigInteger::power(random_bigint(3), random_bigint(3));
+        T.finish();
+        total_time += T.get_time_milliseconds();
+
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
+    }
+}
+
+TEST(BiMethodsTests, Size) {
+    BigInteger a = 179;
+
+    ASSERT_EQ(3, a.size());
+}
+
+TEST(BiMethodsTests, SizeNegative) {
+    BigInteger a = -19;
+    ASSERT_EQ(2, a.size());
+}
+
+TEST(BiMethodsTests, SizeBig) {
+    BigInteger a = random_bigint(100'000);
+    ASSERT_EQ(100'000, a.size());
+}
+
+TEST(BiMethodsTests, SizeZero) {
+    BigInteger a = 0;
+    ASSERT_EQ(1, a.size());
+}
+
+TEST(BiMethodsTests, IsZeroPositive) {
+    BigInteger a = 179;
+    ASSERT_FALSE(a.is_zero());
+}
+
+TEST(BiMethodsTests, IsZeroNegative) {
+    BigInteger a = -179;
+    ASSERT_FALSE(a.is_zero());
+}
+
+TEST(BiMethodsTests, IsZeroZero) {
+    BigInteger a = 0;
+    ASSERT_TRUE(a.is_zero());
+}
+
+TEST(BiMethodsTests, IsZeroTen) {
+    BigInteger a = 10;
+    ASSERT_FALSE(a.is_zero());
+}
+
+TEST(BiMethodsTests, IsNegativePositive) {
+    BigInteger a = 179;
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(BiMethodsTests, IsNegativeZero) {
+    BigInteger a = 0;
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(BiMethodsTests, IsNegativeNegative) {
+    BigInteger a = -1;
+    ASSERT_TRUE(a.is_negative());
+}
+
+TEST(BiMethodsTests, IsNegativeAfterSum) {
+    BigInteger a = -11;
+    a += 11;
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(BiMethodsTests, InvertSignPositive) {
+    BigInteger a = 179;
+    a.invert_sign();
+    ASSERT_EQ(-179, a);
+}
+
+TEST(BiMethodsTests, InvertSignNegative) {
+    BigInteger a = -179;
+    a.invert_sign();
+    ASSERT_EQ(179, a);
+}
+
+TEST(BiMethodsTests, InvertSignZero) {
+    BigInteger a = 0;
+    a.invert_sign();
+    ASSERT_EQ(0, a);
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(BiMethodsTests, Shift) {
+    BigInteger a = 179;
+    a.shift(1);
+    ASSERT_EQ(1790, a);
+}
+
+TEST(BiMethodsTests, ShiftZero) {
+    BigInteger a = 179;
+    a.shift(0);
+    ASSERT_EQ(179, a);
+}
+
+TEST(BiMethodsTests, ShiftNegative) {
+    BigInteger a = -179;
+    a.shift(2);
+    ASSERT_EQ(-17900, a);
+}
+
+TEST(BiMethodsTests, ShiftZeroValue) {
+    BigInteger a = 0;
+    a.shift(30);
+    ASSERT_EQ(0, a);
+    ASSERT_EQ("0", a.toString());
+}
+
+TEST(BiMethodsTests, ShiftTime) {
+    int total_time = 0;
+    int time_treshold = 1000;
+    for (size_t i = 0; i < 100; ++i) {
+        BigInteger a = random_bigint(100'000);
+        Timer T;
+        T.start();
+        a.shift(100'000);
+        T.finish();
+        total_time += T.get_time_milliseconds();
+        ASSERT_LE(total_time, time_treshold);
+    }
+}
 

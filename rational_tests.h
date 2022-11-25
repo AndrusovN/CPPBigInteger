@@ -125,23 +125,23 @@ TEST(RatOperatorTests, PlusEqToZero) {
 
 TEST(RatOperatorTests, PlusEqTime) {
     int total_time = 0;
-    int time_treshold = 1000;
-    for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        auto a = random_rational(100000);
-        auto b = random_rational(100000);
+    int time_treshold = 2000;
+    for (int i = 0; i < 50; ++i) {
+        auto a = random_rational(70);
+        auto b = random_rational(70);
         Timer T;
         T.start();
         a += b;
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
     }
 }
 
 TEST(RatOperatorTests, MinusEqRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        auto a = random_rational(1000);
-        auto b = random_rational(1000);
+        auto a = random_rational(100);
+        auto b = random_rational(100);
         auto c = a;
         c += -b;
         a -= b;
@@ -171,7 +171,7 @@ TEST(RatOperatorTests, MultEqNegative) {
      Rational b = 10;
      b /= 7;
      a *= b;
-     Rational c = 2;
+     Rational c = -2;
      c /= 21;
      ASSERT_EQ(c, a);
 }
@@ -199,16 +199,16 @@ TEST(RatOperatorTests, MultEqZero) {
 
 TEST(RatOperatorTests, MultEqTime) {
     int total_time = 0;
-    int time_treshold = 1000;
-    for (int i = 0; i < 100; ++i) {
-        auto a = random_rational(10000);
-        auto b = random_rational(10000);
+    int time_treshold = 2000;
+    for (int i = 0; i < 50; ++i) {
+        auto a = random_rational(70);
+        auto b = random_rational(70);
         Timer T;
         T.start();
         a *= b;
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(time_treshold, total_time);
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
     }
 }
 
@@ -222,7 +222,6 @@ TEST(RatOperatorTests, DivEq) {
 TEST(RatOperatorTests, DivEqNegative) {
     Rational a = 1;
     a /= -1;
-    a += a;
     ASSERT_EQ(-1, a);
 }
 
@@ -243,18 +242,18 @@ TEST(RatOperatorTests, DivEqZeroException) {
 }
 
 TEST(RatOperatorTests, DivEqTime) {
-    int time_treshold = 1000;
+    int time_treshold = 2000;
     int total_time = 0;
-    for (int i = 0; i < 100; ++i) {
-        auto a = random_rational(10000);
+    for (int i = 0; i < 50; ++i) {
+        auto a = random_rational(70);
         Rational b = 0;
-        while(b == 0) b = random_rational(10000);
+        while(b == 0) b = random_rational(70);
         Timer T;
         T.start();
         a /= b;
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
     }
 }
 
@@ -324,7 +323,7 @@ TEST(RatMethodTests, AsDecimalZeroPrec) {
 TEST(RatMethodTests, AsDecimalRound) {
     Rational a = 11;
     a /= 20;
-    ASSERT_EQ("0.6", a.asDecimal());
+    ASSERT_EQ("0.6", a.asDecimal(1));
 }
 
 TEST(RatMethodTests, AsDecimalMoreZeroes) {
@@ -445,24 +444,32 @@ TEST(RatOperatorTests, SpacechipZeroZero) {
 
 TEST(RatOperatorTests, SpaceshipTime) {
     int total_time = 0;
-    int time_treshold = 1000;
+    int time_treshold = 4000000;
 
-    for (int i = 0; i < 100; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+    size_t options_count = 200;
+    vector<Rational> options(options_count);
+    for (size_t i = 0; i < options_count; ++i) {
+        options[i] = random_rational(50);
+    }
+
+    for (size_t i = 0; i < options_count; ++i) {
         Timer T;
         T.start();
-        a <=> b;
+        
+        for (size_t j = i; j < options_count; ++j) {
+            options[i] <=> options[j];
+        }
+
         T.finish();
-        total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of " << options_count;
     }
 }
 
 TEST(RatOperatorTests, Less) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+        Rational a = random_rational(100);
+        Rational b = random_rational(100);
         auto result = a <=> b;
         bool answer = result == std::strong_ordering::less;
         ASSERT_EQ(answer, a < b);
@@ -471,8 +478,8 @@ TEST(RatOperatorTests, Less) {
 
 TEST(RatOperatorTests, LEq) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+        Rational a = random_rational(100);
+        Rational b = random_rational(100);
         auto result = a <=> b;
         bool answer = result != std::strong_ordering::greater;
         ASSERT_EQ(answer, a <= b);
@@ -481,8 +488,8 @@ TEST(RatOperatorTests, LEq) {
 
 TEST(RatOperatorTests, Greater) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+        Rational a = random_rational(100);
+        Rational b = random_rational(100);
         auto result = a <=> b;
         bool answer = result == std::strong_ordering::greater;
         ASSERT_EQ(answer, a > b);
@@ -491,8 +498,8 @@ TEST(RatOperatorTests, Greater) {
 
 TEST(RatOperatorTests, GEq) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+        Rational a = random_rational(100);
+        Rational b = random_rational(100);
         auto result = a <=> b;
         bool answer = result != std::strong_ordering::less;
         ASSERT_EQ(answer, a >= b);
@@ -542,22 +549,31 @@ TEST(RatOperatorTests, EqNegPos) {
 TEST(RatOperatorTests, EqTime) {
     int total_time = 0;
     int time_treshold = 500;
-    for (int i = 0; i < 100; ++i) {
-        Rational a = random_rational(100'000);
-        Rational b = random_rational(100'000);
+
+    size_t options_count = 500;
+    vector<Rational> options(options_count);
+    for (size_t i = 0; i < options_count; ++i) {
+        options[i] = random_rational(50);
+    }
+
+    for (size_t i = 0; i < options_count; ++i) {
         Timer T;
         T.start();
-        a == b;
+        
+        for (size_t j = i; j < options_count; ++j) {
+            options[i] == options[j];
+        }
+
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
     }
 }
 
 TEST(RatOperatorTests, NeqRandom) {
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        Rational a = random_rational(10000);
-        Rational b = random_rational(10000);
+        Rational a = random_rational(100);
+        Rational b = random_rational(100);
 
         ASSERT_EQ(!(a == b), a != b);
     }
@@ -565,8 +581,8 @@ TEST(RatOperatorTests, NeqRandom) {
 
 #define CHECK_SAME_OPERATOR_RAT(op, correctOp) \
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) { \
-        Rational a = random_rational(10000); \
-        Rational b = random_rational(10000); \
+        Rational a = random_rational(100); \
+        Rational b = random_rational(100); \
         Rational c = a op b; \
         ASSERT_EQ(a correctOp b, c); \
     }
@@ -585,5 +601,59 @@ TEST(RatOperatorTests, MultRandom) {
 
 TEST(RatOperatorTests, DivRandom) {
     CHECK_SAME_OPERATOR_RAT(/, /=);
+}
+
+TEST(RatMethodsTests, IsZeroPositive) {
+    Rational a = 1;
+    a /= 179;
+    ASSERT_FALSE(a.is_zero());
+}
+
+TEST(RatMethodsTests, IsZeroNegative) {
+    Rational a = -1;
+    a /= 3;
+    ASSERT_FALSE(a.is_zero());
+}
+
+TEST(RatMethodsTests, IsZeroZero) {
+    Rational a = 0;
+    a /= 179;
+    ASSERT_TRUE(a.is_zero());
+}
+
+TEST(RatMethodsTests, IsZeroAfterSum) {
+    Rational a = -1;
+    a /= 179;
+    Rational b = 1;
+    b /= 179;
+    a += b;
+    ASSERT_TRUE(a.is_zero());
+}
+
+TEST(RatMethodsTests, IsNegativePositive) {
+    Rational a = 1;
+    a /= 11;
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(RatMethodsTests, IsNegativeZero) {
+    Rational a = 0;
+    a /= 179;
+    ASSERT_FALSE(a.is_negative());
+}
+
+TEST(RatMethodsTests, IsNegativeNegative) {
+    Rational a = -1;
+    a /= 180;
+    ASSERT_TRUE(a.is_negative());
+}
+
+TEST(RatMethodsTests, IsNegativeAfterSum) {
+    Rational a = -1;
+    a /= 11;
+    Rational b = 1;
+    b /= 11;
+    a += b;
+    ASSERT_FALSE(a.is_negative());
 }
 

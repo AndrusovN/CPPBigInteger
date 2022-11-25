@@ -22,8 +22,7 @@ Rational::Rational(const BigInteger& numerator, const BigInteger& denominator) :
 }
 
 Rational& Rational::operator+=(const Rational& other) {
-    numerator *= other.denominator;
-    numerator += other.numerator * denominator;
+    numerator = numerator * other.denominator + denominator * other.numerator;
     denominator *= other.denominator;
     reduct();
     return *this;
@@ -59,10 +58,11 @@ string Rational::toString() const {
 }
 
 string Rational::asDecimal(size_t precision) const {
-    BigInteger additional = BigInteger::power(10, precision);
-    string divided = ((numerator * additional) / denominator).toString();
+    BigInteger additional = BigInteger::power(10, precision + 1);
+    BigInteger pre_divided = ((numerator * additional) / denominator);
+    string divided = ((pre_divided + 5) / 10).toString();
     string result = "";
-    if (divided.size() < precision) {
+    if (divided.size() <= precision) {
         result = "0.";
         for (size_t i = divided.size(); i < precision; ++i) {
             result += '0';
@@ -70,7 +70,7 @@ string Rational::asDecimal(size_t precision) const {
     }
     for (size_t i = 0; i < divided.size(); ++i) { 
         result += divided[i];
-        if (divided.size() - i == precision && precision > 0) {
+        if (divided.size() - i - 1 == precision && precision > 0) {
             result += '.';
         }
     }
@@ -157,5 +157,10 @@ Rational operator*(const Rational& left, const Rational& right) {
 Rational operator/(const Rational& left, const Rational& right) {
     auto result = left;
     return result /= right;
+}
+
+std::ostream& operator<<(std::ostream& output, const Rational& other) {
+    output << other.toString();
+    return output;
 }
 

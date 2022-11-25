@@ -27,21 +27,19 @@ TEST(BiOperatorTests, EqTime) {
     std::vector<BigInteger> testCases;
     for (int i = 0; i < 179; ++i) {
         testCases.push_back(random_bigint(1000));
-        testCases.back() -= testCases.back() % 179;
-        testCases.back() += i;
     }
 
     int total_time = 0;
     int time_treshold = 1000000;
     for (int i = 0; i < 179; ++i) {
+        Timer T;
+        T.start();
         for (int j = i + 1; j < 179; ++j) {
-            Timer T;
-            T.start();
             testCases[i] == testCases[j];
-            T.finish();
-            total_time += T.get_time_microseconds();
-            ASSERT_LE(total_time, time_treshold);
         }
+        T.finish();
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(total_time, time_treshold);
     }
 }
 
@@ -130,7 +128,7 @@ TEST(BiOperatorTests, SpaceshipTime) {
         a <=> b;
         T.finish();
         total_time += T.get_time_microseconds();
-        ASSERT_LE(time_treshold, total_time);
+        ASSERT_LE(total_time, time_treshold);
     }
 }
 

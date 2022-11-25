@@ -66,3 +66,4 @@ Rational operator/(const Rational& left, const Rational& right);
 
 const BigInteger DOUBLE_MAX = BigInteger(1ll << 52);
 
+std::ostream& operator<<(std::ostream& output, const Rational& other);

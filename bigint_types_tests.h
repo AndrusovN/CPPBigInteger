@@ -2,6 +2,21 @@
 
 #include "bigint_test_helper.h"
 
+TEST(BiConstructorTests, LLTime) {
+    int total_time = 0;
+    int time_treshold = 1500000;
+    for (size_t i = 0; i < 10000; ++i) {
+        Timer T;
+        T.start();
+        for (size_t j = 0; j < 1000; ++j) {
+            BigInteger a(1ll);
+        }
+        T.finish();
+        total_time += T.get_time_microseconds();
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 10000";
+    }
+}
+
 TEST(BiConstructorTests, Default) {
     BigInteger a;
 
@@ -217,8 +232,8 @@ TEST(BiOperatorTests, OutputZero) {
 TEST(BiOperatorTests, IORandom) {
     std::stringstream ss;
     for (int i = 0; i < RANDOM_TRIES_COUNT; ++i) {
-        BigInteger a = random_bigint(1000);
-        ss << a;
+        BigInteger a = random_bigint(100);
+        ss << a << ' ';
         BigInteger b;
         ss >> b;
         ASSERT_EQ(a, b);
