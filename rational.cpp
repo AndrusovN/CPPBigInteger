@@ -58,10 +58,19 @@ string Rational::toString() const {
 }
 
 string Rational::asDecimal(size_t precision) const {
+    // answer * power(10, precision) is around numerator / denominator
+    // so let's calculate it this way
+    // use precision + 1 to do correct round up/down
     BigInteger additional = BigInteger::power(10, precision + 1);
+
+    // pre_divided is almost what we need. now only do correct round and divide by 10
     BigInteger pre_divided = ((numerator * additional) / denominator);
+
+    // divided is the answer string except for decimal dot
     string divided = ((pre_divided + 5) / 10).toString();
     string result = "";
+
+    // now add the dot in the correct place
     if (divided.size() <= precision) {
         result = "0.";
         for (size_t i = divided.size(); i < precision; ++i) {
@@ -91,6 +100,8 @@ BigInteger Rational::to_int_binary_shifted(long long binary_shift) const {
 
 Rational::operator double() const {
     if (numerator.is_zero()) return 0;
+    // double is 52 bits of mantissa and 11 bits of exponent
+    // first using bin_search find the best exponent
     long long exponent_l = -1024;
     long long exponent_r = 1024;
     while(exponent_l != exponent_r - 1) {
@@ -105,9 +116,8 @@ Rational::operator double() const {
             exponent_r = m;
         }
     }
-    
+    // then save the answer as double
     auto mantissa = to_int_binary_shifted(exponent_r);
-
     if (mantissa >= DOUBLE_MAX) throw TooBigCastException(mantissa, typeid(double));
     
     return ldexp(static_cast<long long>(mantissa), -exponent_r);

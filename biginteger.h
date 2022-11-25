@@ -23,14 +23,7 @@ class BigInteger {
 
     // REWRITE IF BASE CHANGES!!!!
     static digit_t char_to_digit(char c);
-
     static char digit_to_char(digit_t d);
-
-    void add_absolute(const BigInteger& other);
-
-    void substract_absolute(const BigInteger& other);
-
-    strong_ordering compare_absolute(const BigInteger& other) const;
 
     // contract: reduced is bigger than substracted
     static void substract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& substracted, vector<digit_t>& difference);
@@ -44,14 +37,20 @@ class BigInteger {
 
     static void clear_leading_zeroes(vector<digit_t>& digits);
 
-    static void reorder_items_for_fft(vector<complex>& source);
+    static void reorder_for_fft(vector<complex>& source);
+
+
+    void add_absolute(const BigInteger& other);
+
+    void substract_absolute(const BigInteger& other);
+
+    strong_ordering compare_absolute(const BigInteger& other) const;
 
     void resolve_carry(int carry, size_t index);
 
     void resolve_sign();
-  public:
-    static BigInteger power(const BigInteger& indicator, const BigInteger& exponent);
 
+  public:
     BigInteger();
 
     BigInteger(long long value);
@@ -98,7 +97,9 @@ class BigInteger {
 
     void shift(int digits);
 
-    ~BigInteger();
+    ~BigInteger() = default;
+
+    static BigInteger power(const BigInteger& indicator, const BigInteger& exponent);
 
     friend strong_ordering operator<=>(const BigInteger& left, const BigInteger& right);
 };

@@ -8,6 +8,16 @@
 BigInteger longMin = BigInteger(std::numeric_limits<long long>::min());
 BigInteger longMax = BigInteger(std::numeric_limits<long long>::max()); 
 
+size_t revert_binary(size_t index, size_t length) {
+    size_t result = 0;
+    for (size_t i = 0; i < length; ++i) {
+        if ((index >> i) & 1) {
+            result |= (1 << (length - i - 1));
+        }
+    }
+    return result;
+}
+
 size_t BigInteger::size() const {
     return digits.size();
 }
@@ -27,6 +37,10 @@ char BigInteger::digit_to_char(digit_t d) {
 
 bool BigInteger::is_zero() const {
     return size() == 1 && digits[0] == 0;
+}
+
+void BigInteger::clear_leading_zeroes(vector<digit_t>& digits) {
+    while(digits.size() > 1 && digits.back() == 0) digits.pop_back();
 }
 
 strong_ordering BigInteger::compare_absolute(const BigInteger& other) const {
@@ -110,10 +124,6 @@ void BigInteger::substract_absolute(const BigInteger& other) {
     } else {
         substract_vectors(digits, other.digits, digits);
     }
-}
-
-void BigInteger::clear_leading_zeroes(vector<digit_t>& digits) {
-    while(digits.size() > 1 && digits.back() == 0) digits.pop_back();
 }
 
 BigInteger::BigInteger() : BigInteger(0) {}
@@ -212,17 +222,7 @@ vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     return result;
 }
 
-size_t revert_binary(size_t index, size_t length) {
-    size_t result = 0;
-    for (size_t i = 0; i < length; ++i) {
-        if ((index >> i) & 1) {
-            result |= (1 << (length - i - 1));
-        }
-    }
-    return result;
-}
-
-void BigInteger::reorder_items_for_fft(vector<complex>& source) {
+void BigInteger::reorder_for_fft(vector<complex>& source) {
     size_t length = 0;
     while((1u << length) < source.size()) ++length;
 
@@ -236,7 +236,7 @@ void BigInteger::reorder_items_for_fft(vector<complex>& source) {
 void BigInteger::fft(vector<complex>& source, bool inversed) {
     complex root_coefficient = complex(-1.0, inversed ? -0.0 : 0.0);
 
-    reorder_items_for_fft(source);
+    reorder_for_fft(source);
 
     for (size_t block_length = 2; block_length <= source.size(); block_length *= 2) {
         long double angle = 2 * M_PI / block_length * (inversed ? -1 : 1);
@@ -267,26 +267,18 @@ void BigInteger::fft(vector<complex>& source, bool inversed) {
 }
 
 BigInteger& BigInteger::operator*=(const BigInteger& other) {
-    //std::cout << "timeseq" << std::endl;
     auto my_complex_values = digits_to_complex(digits, size() + other.size());
-    //std::cout << "first fft" << std::endl;
     fft(my_complex_values);
-    //std::cout << "first fft finished" << std::endl;
+    
     auto other_complex_values = digits_to_complex(other.digits, size() + other.size());
-    //std::cout << "second fft" << std::endl;
     fft(other_complex_values);
-    //std::cout << "second fft finished" << std::endl;
 
     for (size_t i = 0; i < my_complex_values.size(); ++i) {
         my_complex_values[i] *= other_complex_values[i];
     }
 
-    //std::cout << "third fft" << std::endl;
     fft(my_complex_values, true);
-    //std::cout << "third fft finished" << std::endl;
-
     digits = std::move(complex_to_digits(my_complex_values));
-    //std::cout << "saved" << std::endl;
     negative ^= other.negative;
     if (is_zero() || other.is_zero()) negative = false;
 
@@ -309,11 +301,14 @@ void BigInteger::shift(int digits) {
 BigInteger& BigInteger::operator/=(const BigInteger& other) {
     if (other.is_zero()) throw DivisionByZeroException(*this);
     if (other.size() > size()) return *this = 0;
+    
     bool old_negative = negative;
     BigInteger result = 0;
+    
     auto substracted = other;
     substracted.shift(size() - other.size());
     substracted.negative = negative;
+    
     for (size_t offset = size() - other.size(); offset + 1 > 0; --offset) {
         result.shift(1);
         while(compare_absolute(substracted) >= 0) {
@@ -322,6 +317,7 @@ BigInteger& BigInteger::operator/=(const BigInteger& other) {
         }
         substracted.shift(-1);
     }
+    
     result.negative = result.is_zero() ? false : (other.negative ^ old_negative);
     return *this = result;
 }
@@ -420,8 +416,6 @@ BigInteger BigInteger::power(const BigInteger& indicator, const BigInteger& expo
     }
     return result;
 }
-
-BigInteger::~BigInteger() {}
 
 bool operator==(const BigInteger& left, const BigInteger& right) {
     if (left.size() != right.size()) return false;
