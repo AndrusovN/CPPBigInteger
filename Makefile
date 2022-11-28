@@ -2,7 +2,7 @@ CC=g++ -std=c++20
 CFLAGS=-Wall -Wextra -Wpedantic -Werror
 TESTFLAGS=-lgtest -pthread --coverage
 OUTPUT=tests
-SOURCES=$(OUTPUT).cpp biginteger.cpp rational.cpp exceptions.cpp
+SOURCES=$(OUTPUT).cpp
 INFOS=$(SOURCES:.cpp=.info)
 GCDAS=$(SOURCES:.cpp=.gcda)
 GCNOS=$(SOURCES:.cpp=.gcno)

@@ -3,7 +3,7 @@
 #include <random>
 
 #include "bigint_test_helper.h"
-#include "rational.h"
+#include "biginteger.h"
 
 double precision = 1e-14;
 
@@ -234,11 +234,6 @@ TEST(RatOperatorTests, DivEqRational) {
     Rational c = 5;
     c /= 3;
     ASSERT_EQ(c, a);
-}
-
-TEST(RatOperatorTests, DivEqZeroException) {
-    Rational a = 1;
-    ASSERT_THROW(a /= 0, DivisionByZeroException);
 }
 
 TEST(RatOperatorTests, DivEqTime) {
