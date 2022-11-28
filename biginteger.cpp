@@ -409,7 +409,7 @@ BigInteger BigInteger::power(const BigInteger& indicator, const BigInteger& expo
             result *= current_power;
         }
         BigInteger new_power = current_power;
-        for (auto t = 0; t < BASE; ++t) {
+        for (auto t = 1; t < BASE; ++t) {
             new_power *= current_power;
         }
         current_power = new_power;

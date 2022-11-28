@@ -315,6 +315,17 @@ TEST(RatMethodTests, AsDecimal) {
     ASSERT_EQ("179.0", a.asDecimal(1));
 }
 
+TEST(RatMethodsTests, AsDecimalZero) {
+    Rational a = 0;
+    ASSERT_EQ("0.0", a.asDecimal(1));
+}
+
+TEST(RatMethodsTests, AsDecimalTooSmall) {
+    Rational a = 1;
+    a /= 1000;
+    ASSERT_EQ("0.0", a.asDecimal(1));
+}
+
 TEST(RatMethodTests, AsDecimalZeroPrec) {
     Rational a = 11;
     ASSERT_EQ("11", a.asDecimal(0));
@@ -336,12 +347,29 @@ TEST(RatMethodTests, AsDecimalRoundDown) {
     Rational a = 10;
     a /= 3;
     ASSERT_EQ("3.3", a.asDecimal(1));
-} 
+}
+
+TEST(RatMethodTests, AsDecimalNegative) {
+    Rational a = -1;
+    a /= 20;
+    ASSERT_EQ("-0.05", a.asDecimal(2));
+}
 
 TEST(RatMethodTests, AsDecimalRoundUp) {
     Rational a = 5;
     a /= 3;
     ASSERT_EQ("1.7", a.asDecimal(1));
+}
+
+TEST(RatMethodTests, AsDecimalNeg) {
+    Rational a = -1;
+    a /= 5;
+    ASSERT_EQ("-0.2", a.asDecimal(1));
+}
+
+TEST(RatOperatorTests, AsDecimalNegBig) {
+    Rational a = -11;
+    ASSERT_EQ("-11", a.asDecimal(0));
 }
 
 TEST(RatOperatorTests, DoubleCast) {
@@ -350,7 +378,7 @@ TEST(RatOperatorTests, DoubleCast) {
     d /= 3;
     r /= 3;
     double d1 = static_cast<double>(r);
-    ASSERT_LE(precision, abs(d - d1));
+    ASSERT_LE(abs(d - d1), precision);
 }
 
 TEST(RatOperatorTests, DoubleCastRandom) {
@@ -364,7 +392,7 @@ TEST(RatOperatorTests, DoubleCastRandom) {
         r /= denom;
         double d1 = static_cast<double>(r);
 
-        ASSERT_LE(precision, abs(d-d1));
+        ASSERT_LE(abs(d-d1), precision);
     }
 }
 

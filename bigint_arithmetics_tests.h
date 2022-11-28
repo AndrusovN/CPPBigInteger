@@ -457,6 +457,11 @@ TEST(BiMethodsTests, PowerZero) {
     ASSERT_EQ(1, a);
 }
 
+TEST(BiMethodTests, PowerBig) {
+    BigInteger a = BigInteger::power(2, 16);
+    ASSERT_EQ(65536, a);
+}
+
 TEST(BiMethodsTests, PowerOne) {
     BigInteger a = BigInteger::power(1, 1791791791);
     ASSERT_EQ(1, a);

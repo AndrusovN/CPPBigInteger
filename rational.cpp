@@ -65,14 +65,16 @@ string Rational::asDecimal(size_t precision) const {
 
     // pre_divided is almost what we need. now only do correct round and divide by 10
     BigInteger pre_divided = ((numerator * additional) / denominator);
+    if (pre_divided.is_negative()) pre_divided.invert_sign();
 
     // divided is the answer string except for decimal dot
     string divided = ((pre_divided + 5) / 10).toString();
     string result = "";
+    if (numerator.is_negative()) result = "-";
 
     // now add the dot in the correct place
     if (divided.size() <= precision) {
-        result = "0.";
+        result += "0.";
         for (size_t i = divided.size(); i < precision; ++i) {
             result += '0';
         }
@@ -111,16 +113,16 @@ Rational::operator double() const {
         if (result.is_negative()) result.invert_sign();
 
         if (result >= DOUBLE_MAX) {
-            exponent_l = m;
-        } else {
             exponent_r = m;
+        } else {
+            exponent_l = m;
         }
     }
     // then save the answer as double
-    auto mantissa = to_int_binary_shifted(exponent_r);
+    auto mantissa = to_int_binary_shifted(exponent_l);
     if (mantissa >= DOUBLE_MAX) throw TooBigCastException(mantissa, typeid(double));
     
-    return ldexp(static_cast<long long>(mantissa), -exponent_r);
+    return ldexp(static_cast<long long>(mantissa), -exponent_l);
 }
 
 Rational::operator bool() const {
