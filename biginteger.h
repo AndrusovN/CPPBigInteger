@@ -12,7 +12,7 @@ using std::string;
 using std::strong_ordering;
 
 using digit_t = int;
-using complex = std::complex<double>;
+using Complex = std::complex<double>;
 
 size_t revert_binary(size_t index, size_t length);
 
@@ -32,15 +32,17 @@ class BigInteger {
     static void subtract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& subtracted, vector<digit_t>& difference);
   
     // Applies Fast Fourier Transform (or it's inversed form) to the vector of coefficients (or values respectively)
-    static void fft(vector<complex>& coefficients, bool inversed=false);
+    static void fft(vector<Complex>& source, bool inversed=false);
     
-    static vector<digit_t> complex_to_digits(const vector<complex>& values);
+    static vector<digit_t> complex_to_digits(const vector<Complex>& values);
 
-    static vector<complex> digits_to_complex(const vector<digit_t>& values, size_t target_size); 
+    static vector<Complex> digits_to_complex(const vector<digit_t>& values, size_t target_size); 
 
     static void clear_leading_zeroes(vector<digit_t>& digits);
 
-    static void reorder_for_fft(vector<complex>& source);
+    static void reorder_for_fft(vector<Complex>& source);
+
+    static std::pair<BigInteger, BigInteger> divide(const BigInteger& numerator, const BigInteger& denominator);
 
 
     void add_absolute(const BigInteger& other);
@@ -54,8 +56,7 @@ class BigInteger {
     void resolve_sign();
 
     BigInteger multiplied_by_digit(digit_t value) const;
-
-    static std::pair<BigInteger, BigInteger> divide(const BigInteger& numerator, const BigInteger& denominator);
+  
   public:
     BigInteger();
 
@@ -101,7 +102,7 @@ class BigInteger {
 
     void invert_sign();
 
-    void shift(int digits);
+    void shift(int shift_value);
 
     ~BigInteger() = default;
 
@@ -126,14 +127,14 @@ BigInteger operator%(const BigInteger& left, const BigInteger& right);
 
 std::istream& operator>>(std::istream& input, BigInteger& value);
 
-std::ostream& operator<<(std::ostream& output, const BigInteger& source);
+std::ostream& operator<<(std::ostream& output, const BigInteger& value);
 
-BigInteger operator""_bi(unsigned long long);
+BigInteger operator""_bi(unsigned long long source);
 
 BigInteger gcd(BigInteger left, BigInteger right);
 
-BigInteger longMin = BigInteger(std::numeric_limits<long long>::min());
-BigInteger longMax = BigInteger(std::numeric_limits<long long>::max()); 
+BigInteger MIN_LONG = BigInteger(std::numeric_limits<long long>::min());
+BigInteger MAX_LONG = BigInteger(std::numeric_limits<long long>::max()); 
 
 size_t revert_binary(size_t index, size_t length) {
     size_t result = 0;
@@ -326,26 +327,26 @@ BigInteger& BigInteger::operator-=(const BigInteger& other) {
     return *this;
 }
 
-vector<complex> BigInteger::digits_to_complex(const vector<digit_t>& values, size_t target_size) {
+vector<Complex> BigInteger::digits_to_complex(const vector<digit_t>& values, size_t target_size) {
     size_t result_size = 1;
     while(target_size > 0) {
         result_size *= 2;
         target_size /= 2;
     }
-    vector<complex> result(result_size, 0);
+    vector<Complex> result(result_size, 0);
     for (size_t i = 0; i < values.size(); ++i) {
-        result[i] = static_cast<complex>(values[i]);
+        result[i] = static_cast<Complex>(values[i]);
     }
 
     return result;
 }
 
-vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
+vector<digit_t> BigInteger::complex_to_digits(const vector<Complex>& values) {
     vector<digit_t> result(values.size(), 0);
     long long carry = 0;
     for (size_t i = 0; i < result.size(); ++i) {
         carry += static_cast<long long>(values[i].real() + 0.5);
-        result[i] = carry % DIGIT_BASE;
+        result[i] = static_cast<digit_t>(carry % static_cast<long long>(DIGIT_BASE));
         carry /= DIGIT_BASE;
     }
     
@@ -354,9 +355,11 @@ vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     return result;
 }
 
-void BigInteger::reorder_for_fft(vector<complex>& source) {
+void BigInteger::reorder_for_fft(vector<Complex>& source) {
     size_t length = 0;
-    while((1u << length) < source.size()) ++length;
+    while((1U << length) < source.size()) {
+        ++length;
+    }
 
     for (size_t i = 0; i < source.size(); ++i) {
         if (i < revert_binary(i, length)) {
@@ -365,24 +368,24 @@ void BigInteger::reorder_for_fft(vector<complex>& source) {
     }
 }
 
-void BigInteger::fft(vector<complex>& source, bool inversed) {
-    complex root_coefficient = complex(-1.0, inversed ? -0.0 : 0.0);
+void BigInteger::fft(vector<Complex>& source, bool inversed) {
+    Complex root_coefficient = Complex(-1.0, inversed ? -0.0 : 0.0);
 
     reorder_for_fft(source);
 
     for (size_t block_length = 2; block_length <= source.size(); block_length *= 2) {
-        long double angle = 2 * M_PI / static_cast<long double>(block_length) * (inversed ? -1 : 1);
-        root_coefficient = complex(cosl(angle), sinl(angle));
+        double angle = 2 * M_PI / static_cast<double>(block_length) * (inversed ? -1 : 1);
+        root_coefficient = Complex(cos(angle), sin(angle));
 
         for (size_t block_id = 0; block_id < source.size() / block_length; ++block_id) {
             size_t left_part = block_id * block_length;
             size_t right_part = left_part + block_length / 2;
            
-            complex current_root = 1;
+            Complex current_root = 1;
 
             for (size_t i = 0; i < block_length / 2; ++i) {
-                complex first = source[left_part + i] + current_root * source[right_part + i];
-                complex second = source[left_part + i] - current_root * source[right_part + i];
+                Complex first = source[left_part + i] + current_root * source[right_part + i];
+                Complex second = source[left_part + i] - current_root * source[right_part + i];
                 source[left_part + i] = first;
                 source[right_part + i] = second;
                 current_root *= root_coefficient;
@@ -392,7 +395,7 @@ void BigInteger::fft(vector<complex>& source, bool inversed) {
 
     if (inversed) {
         for (size_t i = 0; i < source.size(); ++i) {
-            source[i] /= source.size();
+            source[i] /= static_cast<digit_t>(source.size());
         }
     }
 }
@@ -410,7 +413,7 @@ BigInteger& BigInteger::operator*=(const BigInteger& other) {
 
     fft(my_complex_values, true);
     digits = complex_to_digits(my_complex_values);
-    negative ^= other.negative;
+    negative = (negative != other.negative);
     if (is_zero() || other.is_zero()) negative = false;
     return *this;
 }
@@ -457,7 +460,8 @@ std::pair<BigInteger, BigInteger> BigInteger::divide(const BigInteger& numerator
     subtracted.negative = numerator.negative;
     for (size_t offset = numerator.size() - denominator.size(); offset + 1 > 0; --offset) {
         result.shift(1);
-        digit_t left = 0, right = DIGIT_BASE;
+        digit_t left = 0;
+        digit_t right = DIGIT_BASE;
         while(left != right - 1) {
             digit_t m = (left + right) / 2;
             if (subtracted.multiplied_by_digit(m).compare_absolute(mod) > 0) {
@@ -530,7 +534,9 @@ string BigInteger::toString() const {
             result[i * BASE_LEN + j] = additional[BASE_LEN - 1 - j];
         }
     }
-    while(result.size() > 1 && result[result.size() - offset - 1] == '0') result.pop_back();
+    while(result.size() > 1 && result[result.size() - offset - 1] == '0') {
+        result.pop_back();
+    }
 
     if (negative) result[result.size() - 1] = '-';
     reverse(result.begin(), result.end());
@@ -631,11 +637,8 @@ std::ostream& operator<<(std::ostream& output, const BigInteger& value) {
 strong_ordering operator<=>(const BigInteger& left, const BigInteger& right) {
     if (left.is_negative() && !right.is_negative()) return strong_ordering::less;
     if (!left.is_negative() && right.is_negative()) return strong_ordering::greater;
-    if (left.is_negative()) {
-        return right.compare_absolute(left);
-    } else {
-        return left.compare_absolute(right);
-    }
+    if (left.is_negative()) return right.compare_absolute(left);
+    return left.compare_absolute(right);
 }
 
 BigInteger operator""_bi(unsigned long long source) {
@@ -665,7 +668,6 @@ class Rational {
 
     void reduct();
 
-    BigInteger to_digit_t_binary_shifted(long long binary_shift) const;
   public:
 
     Rational();
@@ -713,7 +715,7 @@ Rational operator*(const Rational& left, const Rational& right);
 
 Rational operator/(const Rational& left, const Rational& right);
 
-const BigInteger DOUBLE_MAX = BigInteger(1ll << 52);
+const BigInteger DOUBLE_MAX = BigInteger(1LL << 52);
 
 std::ostream& operator<<(std::ostream& output, const Rational& other);
 
@@ -775,19 +777,19 @@ string Rational::toString() const {
 
 string Rational::asDecimal(size_t precision) const {
     // answer * power(10, precision) is around numerator / denominator
-    // so let's calculate it this way
-    // use precision + 1 to do correct round up/down
-    BigInteger additional = BigInteger::power(10, static_cast<long long>(precision + 1));
+    // so let's calculate it this way use precision + 1 to do correct round up/down
+    static const digit_t DECIMAL_BASE = 10;
+
+    BigInteger additional = BigInteger::power(DECIMAL_BASE, static_cast<long long>(precision + 1));
     // pre_divided is almost what we need. now only do correct round and divide by 10
     BigInteger pre_divided = (numerator * additional);
     pre_divided /= denominator;
     if (pre_divided.is_negative()) pre_divided.invert_sign();
 
     // divided is the answer string except for decimal dot
-    string divided = ((pre_divided + 5) / 10).toString();
-    string result = "";
+    string divided = ((pre_divided + DECIMAL_BASE / 2) / DECIMAL_BASE).toString();
+    string result;
     if (numerator.is_negative()) result = "-";
-
     // now add the dot in the correct place
     if (divided.size() <= precision) {
         result += "0.";
@@ -801,18 +803,6 @@ string Rational::asDecimal(size_t precision) const {
             result += '.';
         }
     }
-    return result;
-}
-
-BigInteger Rational::to_digit_t_binary_shifted(long long binary_shift) const {
-    BigInteger exponent = BigInteger::power(2, abs(binary_shift));
-    BigInteger result = numerator;
-    if (binary_shift < 0) {
-        result /= exponent;
-    } else {
-        result *= exponent;
-    }
-    result /= denominator;
     return result;
 }
 
