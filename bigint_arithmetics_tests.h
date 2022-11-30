@@ -96,15 +96,15 @@ TEST(BiOperatorTests, PlusEQRandom) {
 TEST(BiOperatorTests, PlusEQTime) {
     int total_time = 0;
     int time_treshold = 1000000;
-    for (int i = 0; i < 2000; ++i) {
-        BigInteger first = random_bigint(1e4);
-        BigInteger second = random_bigint(1e4);
+    for (int i = 0; i < 500; ++i) {
+        BigInteger first = random_bigint(1e5);
+        BigInteger second = random_bigint(1e5);
         Timer T;
         T.start();
         first += second;
         T.finish();
         total_time += T.get_time_microseconds();
-        ASSERT_LE(total_time, time_treshold) << i << " iteration of 1000";
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 500";
     }
 }
 
@@ -176,15 +176,15 @@ TEST(BiOperatorTests, TimesEQTime) {
     int total_time = 0;
     int time_treshold = 3000;
 
-    for (int i = 0; i < 100; ++i) {
-        auto first = random_bigint(1e4);
-        auto second = random_bigint(1e4);
+    for (int i = 0; i < 10; ++i) {
+        auto first = random_bigint(1e5);
+        auto second = random_bigint(1e5);
         Timer T;
         T.start();
         first *= second;
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold) << i << " of 100 iterations";
+        ASSERT_LE(total_time, time_treshold) << i << " of 10 iterations";
     }
 }
 
@@ -486,10 +486,10 @@ TEST(BiMethodsTests, PowerTime) {
     int time_treshold = 2500;
     int total_time = 0;
 
-    for (size_t i = 0; i < 100; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         Timer T;
         T.start();
-        BigInteger::power(random_bigint(3), random_bigint(3));
+        BigInteger::power(random_bigint(4), random_bigint(3));
         T.finish();
         total_time += T.get_time_milliseconds();
 
@@ -500,17 +500,17 @@ TEST(BiMethodsTests, PowerTime) {
 TEST(BiMethodsTests, Size) {
     BigInteger a = 179;
 
-    ASSERT_EQ(3, a.size());
+    ASSERT_EQ(2, a.size());
 }
 
 TEST(BiMethodsTests, SizeNegative) {
     BigInteger a = -19;
-    ASSERT_EQ(2, a.size());
+    ASSERT_EQ(1, a.size());
 }
 
 TEST(BiMethodsTests, SizeBig) {
     BigInteger a = random_bigint(100'000);
-    ASSERT_EQ(100'000, a.size());
+    ASSERT_EQ(50'000, a.size());
 }
 
 TEST(BiMethodsTests, SizeZero) {
@@ -581,7 +581,7 @@ TEST(BiMethodsTests, InvertSignZero) {
 TEST(BiMethodsTests, Shift) {
     BigInteger a = 179;
     a.shift(1);
-    ASSERT_EQ(1790, a);
+    ASSERT_EQ(17900, a);
 }
 
 TEST(BiMethodsTests, ShiftZero) {
@@ -593,7 +593,7 @@ TEST(BiMethodsTests, ShiftZero) {
 TEST(BiMethodsTests, ShiftNegative) {
     BigInteger a = -179;
     a.shift(2);
-    ASSERT_EQ(-17900, a);
+    ASSERT_EQ(-1790000, a);
 }
 
 TEST(BiMethodsTests, ShiftZeroValue) {
@@ -613,7 +613,7 @@ TEST(BiMethodsTests, ShiftTime) {
         a.shift(100'000);
         T.finish();
         total_time += T.get_time_milliseconds();
-        ASSERT_LE(total_time, time_treshold);
+        ASSERT_LE(total_time, time_treshold) << i << " iteration of 100";
     }
 }
 

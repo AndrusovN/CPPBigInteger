@@ -1,5 +1,5 @@
 CC=g++ -std=c++20
-CFLAGS=-Wall -Wextra -Wpedantic -Werror
+CFLAGS=-Wall -Wextra -Wpedantic -Werror -O2
 TESTFLAGS=-lgtest -pthread --coverage
 OUTPUT=tests
 SOURCES=$(OUTPUT).cpp
@@ -12,7 +12,7 @@ COVERAGE_REPORT_MAINPAGE=index.html
 OUTPUT_STREAM=/dev/null
 
 build: clean $(SOURCES)
-	$(CC) $(SOURCES) $(CFLAGS) $(TESTFLAGS) -O2 -o $(OUTPUT).o
+	$(CC) $(SOURCES) $(CFLAGS) $(TESTFLAGS) -o $(OUTPUT).o
 
 clean:
 	rm -f $(OUTPUT).o

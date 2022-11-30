@@ -1,11 +1,9 @@
 #pragma once
-
 #include <compare>
 #include <complex>
 #include <vector>
 #include <string>
 #include <iostream>
-#include <assert.h>
 #include <limits>
 #include <math.h>
 
@@ -13,23 +11,25 @@ using std::vector;
 using std::string;
 using std::strong_ordering;
 
-using digit_t = char;
-using complex = std::complex<long double>;
+using digit_t = int;
+using complex = std::complex<double>;
 
 size_t revert_binary(size_t index, size_t length);
 
 class BigInteger {
   private:
-    static const digit_t BASE = 10;
+    static const digit_t SYMBOL_BASE = 10;
+    static const digit_t DIGIT_BASE = 1000;
+    static const size_t BASE_LEN = 3;
     vector<digit_t> digits;
     bool negative = false;
 
     // REWRITE IF BASE CHANGES!!!!
-    static digit_t char_to_digit(char c);
-    static char digit_to_char(digit_t d);
+    static digit_t string_to_digit(const string& source, size_t from, size_t to);
+    static string digit_to_string(digit_t d);
 
-    // contract: reduced is bigger than substracted
-    static void substract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& substracted, vector<digit_t>& difference);
+    // contract: reduced is bigger than subtracted
+    static void subtract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& subtracted, vector<digit_t>& difference);
   
     // Applies Fast Fourier Transform (or it's inversed form) to the vector of coefficients (or values respectively)
     static void fft(vector<complex>& coefficients, bool inversed=false);
@@ -45,14 +45,17 @@ class BigInteger {
 
     void add_absolute(const BigInteger& other);
 
-    void substract_absolute(const BigInteger& other);
+    void subtract_absolute(const BigInteger& other);
 
     strong_ordering compare_absolute(const BigInteger& other) const;
 
-    void resolve_carry(int carry, size_t index);
+    void resolve_carry(digit_t carry, size_t index);
 
     void resolve_sign();
 
+    BigInteger multiplied_by_digit(digit_t value) const;
+
+    static std::pair<BigInteger, BigInteger> divide(const BigInteger& numerator, const BigInteger& denominator);
   public:
     BigInteger();
 
@@ -76,7 +79,7 @@ class BigInteger {
 
     BigInteger& operator++();
 
-    BigInteger operator++(int);
+    BigInteger operator++(digit_t);
 
     BigInteger& operator--();
 
@@ -150,12 +153,22 @@ void BigInteger::resolve_sign() {
     if (is_zero()) negative = false;
 }
 
-digit_t BigInteger::char_to_digit(char c) {
-    return c - '0';
+digit_t BigInteger::string_to_digit(const string& source, size_t from, size_t to) {
+    digit_t result = 0;
+    for (size_t i = from; i < to; ++i) {
+        result *= SYMBOL_BASE;
+        result += source[i] - '0';
+    }
+    return result;
 }
 
-char BigInteger::digit_to_char(digit_t d) {
-    return '0' + d;
+string BigInteger::digit_to_string(digit_t d) {
+    string result(BASE_LEN, '0');
+    for(size_t i = 0; i < BASE_LEN; ++i) {
+        result[BASE_LEN - 1 - i] = '0' + static_cast<char>(d % SYMBOL_BASE);
+        d /= SYMBOL_BASE;
+    }
+    return result;
 }
 
 bool BigInteger::is_zero() const {
@@ -177,17 +190,17 @@ strong_ordering BigInteger::compare_absolute(const BigInteger& other) const {
     return strong_ordering::equivalent;
 }
 
-void BigInteger::resolve_carry(int carry, size_t index) {
+void BigInteger::resolve_carry(digit_t carry, size_t index) {
     while(carry != 0) {
         if (index == size()) digits.push_back(0);
         carry += digits[index];
-        digits[index] = carry % BASE;
+        digits[index] = carry % DIGIT_BASE;
         if (carry < 0) {
-            digits[index] += BASE;
-            carry /= BASE;
+            digits[index] += DIGIT_BASE;
+            carry /= DIGIT_BASE;
             --carry;
         } else {
-            carry /= BASE;
+            carry /= DIGIT_BASE;
         }
         ++index;
     }
@@ -201,51 +214,48 @@ void BigInteger::add_absolute(const BigInteger& other) {
         if (i == size()) digits.push_back(0);
         digits[i] += other.digits[i];
         digits[i] += carry;
-        carry = digits[i] / BASE;
-        digits[i] %= BASE;
+        carry = digits[i] / DIGIT_BASE;
+        digits[i] %= DIGIT_BASE;
     }
     resolve_carry(carry, other.size());
 }
 
-void BigInteger::substract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& substracted, vector<digit_t>& difference) {
-    assert(substracted.size() <= reduced.size());
-    
+void BigInteger::subtract_vectors(const vector<digit_t>& reduced, const vector<digit_t>& subtracted, vector<digit_t>& difference) { 
     difference.reserve(reduced.size());
 
     digit_t carry = 0;
     for (size_t i = 0; i < reduced.size(); ++i) {
         if (i == difference.size()) difference.push_back(0);
                 
-        digit_t to_substract = (i < substracted.size()) ? substracted[i] : 0;
+        digit_t to_subtract = (i < subtracted.size()) ? subtracted[i] : 0;
         
-        difference[i] = reduced[i] - carry - to_substract;
+        difference[i] = reduced[i] - carry - to_subtract;
         carry = 0;
         if (difference[i] < 0) {
-            difference[i] += BASE;
+            difference[i] += DIGIT_BASE;
             carry = 1;
         }
 
-        if (i >= substracted.size() && carry == 0) {
+        if (i >= subtracted.size() && carry == 0) {
             if (&difference == &reduced) break;
         }
     }
 
     clear_leading_zeroes(difference);
-    assert(carry == 0);
 }
 
-void BigInteger::substract_absolute(const BigInteger& other) {
+void BigInteger::subtract_absolute(const BigInteger& other) {
     auto comparison_result = compare_absolute(other);
     
     if (comparison_result == strong_ordering::less) {
-        substract_vectors(other.digits, digits, digits);
+        subtract_vectors(other.digits, digits, digits);
         negative = !negative;
     } else if(comparison_result == strong_ordering::equivalent) {
         digits.clear();
         digits.push_back(0);
         negative = false;
     } else {
-        substract_vectors(digits, other.digits, digits);
+        subtract_vectors(digits, other.digits, digits);
     }
 }
 
@@ -262,8 +272,8 @@ BigInteger::BigInteger(long long value) {
         value = -value;
     }
     do {
-        digits.push_back(value % BASE);
-        value /= BASE;
+        digits.push_back(static_cast<digit_t>(value % DIGIT_BASE));
+        value /= DIGIT_BASE;
     } while(value > 0);
     if (special_case) --*this;
 }
@@ -278,9 +288,13 @@ BigInteger::BigInteger(const string& source) {
         negative = true;
         ++offset;
     }
-    digits.resize(source.size() - offset);
-    for (size_t i = source.size(); i > offset; --i) {
-        digits[source.size() - i] = char_to_digit(source[i - 1]);
+    size_t digits_count = 1 + (source.size() - offset - 1) / BASE_LEN;
+    digits.resize(digits_count);
+    for (size_t i = 0; i < digits_count; ++i) {
+        digit_t block_begin = static_cast<digit_t>(source.size()) - static_cast<digit_t>((i + 1) * BASE_LEN);
+        size_t end_index = source.size() - i * BASE_LEN;
+        size_t begin_index = static_cast<size_t>(std::max(static_cast<digit_t>(offset), block_begin));
+        digits[i] = string_to_digit(source, begin_index, end_index);
     }
     clear_leading_zeroes(digits);
 }
@@ -298,14 +312,14 @@ BigInteger& BigInteger::operator+=(const BigInteger& other) {
     if (negative == other.negative) {
         add_absolute(other);
     } else {
-        substract_absolute(other);
+        subtract_absolute(other);
     }
     return *this;
 }
 
 BigInteger& BigInteger::operator-=(const BigInteger& other) {
     if (negative == other.negative) {
-        substract_absolute(other);
+        subtract_absolute(other);
     } else {
         add_absolute(other);
     }
@@ -313,7 +327,6 @@ BigInteger& BigInteger::operator-=(const BigInteger& other) {
 }
 
 vector<complex> BigInteger::digits_to_complex(const vector<digit_t>& values, size_t target_size) {
-    assert(target_size > values.size());
     size_t result_size = 1;
     while(target_size > 0) {
         result_size *= 2;
@@ -329,16 +342,12 @@ vector<complex> BigInteger::digits_to_complex(const vector<digit_t>& values, siz
 
 vector<digit_t> BigInteger::complex_to_digits(const vector<complex>& values) {
     vector<digit_t> result(values.size(), 0);
-    int carry = 0;
+    long long carry = 0;
     for (size_t i = 0; i < result.size(); ++i) {
-        carry += static_cast<int>(values[i].real() + 0.5);
-        result[i] = carry % BASE;
-        carry /= BASE;
+        carry += static_cast<long long>(values[i].real() + 0.5);
+        result[i] = carry % DIGIT_BASE;
+        carry /= DIGIT_BASE;
     }
-
-    // since values is built with enough space (on the initialization of fft),
-    // it should always contain enough zero digits to contain all the carry
-    assert(carry == 0);
     
     clear_leading_zeroes(result);
 
@@ -362,7 +371,7 @@ void BigInteger::fft(vector<complex>& source, bool inversed) {
     reorder_for_fft(source);
 
     for (size_t block_length = 2; block_length <= source.size(); block_length *= 2) {
-        long double angle = 2 * M_PI / block_length * (inversed ? -1 : 1);
+        long double angle = 2 * M_PI / static_cast<long double>(block_length) * (inversed ? -1 : 1);
         root_coefficient = complex(cosl(angle), sinl(angle));
 
         for (size_t block_id = 0; block_id < source.size() / block_length; ++block_id) {
@@ -379,7 +388,6 @@ void BigInteger::fft(vector<complex>& source, bool inversed) {
                 current_root *= root_coefficient;
             } 
         }
-        //root_coefficient = std::sqrt(root_coefficient);
     }
 
     if (inversed) {
@@ -401,56 +409,84 @@ BigInteger& BigInteger::operator*=(const BigInteger& other) {
     }
 
     fft(my_complex_values, true);
-    digits = std::move(complex_to_digits(my_complex_values));
+    digits = complex_to_digits(my_complex_values);
     negative ^= other.negative;
     if (is_zero() || other.is_zero()) negative = false;
-
     return *this;
 }
 
-void BigInteger::shift(int digits) {
-    string characters = toString();
-    for (int i = 0; i < digits; ++i) {
-        characters.push_back('0');
+BigInteger BigInteger::multiplied_by_digit(digit_t value) const {
+    digit_t carry = 0;
+    BigInteger result = *this;
+    for (size_t i = 0; carry > 0 || i < size(); ++i) {
+        if (i < size()) {
+            carry += value * digits[i];
+        } else {
+            result.digits.push_back(0);
+        }
+        result.digits[i] = carry % DIGIT_BASE;
+        carry /= DIGIT_BASE;
     }
-    for (int i = digits; i < 0 && characters.size(); ++i) {
-        characters.pop_back();
-    }
-    if (characters.size() == 0) characters.push_back('0');
+    clear_leading_zeroes(result.digits);
+    result.resolve_sign();
+    return result;
+}
 
-    *this = BigInteger(characters);
+void BigInteger::shift(int shift_value) {
+    if (-shift_value >= static_cast<int>(size())) {
+        *this = 0;
+        return;
+    }
+    size_t new_size = size() + static_cast<size_t>(shift_value);
+    vector<digit_t> new_digits(new_size, 0);
+    for (size_t i = static_cast<size_t>(std::max(0, shift_value)); i < new_digits.size(); ++i) {
+        new_digits[i] = digits[static_cast<size_t>(static_cast<int>(i) - shift_value)];
+    }
+    swap(digits, new_digits);
+    clear_leading_zeroes(digits);
+    resolve_sign();
+}
+
+std::pair<BigInteger, BigInteger> BigInteger::divide(const BigInteger& numerator, const BigInteger& denominator) {
+    if (denominator.size() > numerator.size()) return std::make_pair(0, numerator);
+    BigInteger result = 0;
+    BigInteger mod = numerator;
+
+    auto subtracted = denominator;
+    subtracted.shift(static_cast<int>(numerator.size() - denominator.size()));
+    subtracted.negative = numerator.negative;
+    for (size_t offset = numerator.size() - denominator.size(); offset + 1 > 0; --offset) {
+        result.shift(1);
+        digit_t left = 0, right = DIGIT_BASE;
+        while(left != right - 1) {
+            digit_t m = (left + right) / 2;
+            if (subtracted.multiplied_by_digit(m).compare_absolute(mod) > 0) {
+                right = m;
+            } else {
+                left = m;
+            }
+        }
+        mod -= subtracted.multiplied_by_digit(left);
+        result += left;
+        subtracted.shift(-1);
+    }
+    result.negative = result.is_zero() ? false : (denominator.negative ^ numerator.negative);
+    return std::make_pair(result, mod);
+   
 }
 
 BigInteger& BigInteger::operator/=(const BigInteger& other) {
-    if (other.size() > size()) return *this = 0;
-    
-    bool old_negative = negative;
-    BigInteger result = 0;
-    
-    auto substracted = other;
-    substracted.shift(size() - other.size());
-    substracted.negative = negative;
-    
-    for (size_t offset = size() - other.size(); offset + 1 > 0; --offset) {
-        result.shift(1);
-        while(compare_absolute(substracted) >= 0) {
-            *this -= substracted;
-            ++result;
-        }
-        substracted.shift(-1);
-    }
-    
-    result.negative = result.is_zero() ? false : (other.negative ^ old_negative);
-    return *this = result;
+    return *this = divide(*this, other).first;
 }
 
 BigInteger& BigInteger::operator%=(const BigInteger& other) {
-    auto diff = ((*this) / other);
-    
-    diff *= other;
-    return *this -= diff;
+    return *this = divide(*this, other).second;
 }
 
+// There could be *this += 1, but as my tests showed it works very-very slow
+// Because it has to create a new BigInteger from 1 (therefore create a new vector<digit_t>)
+// So it was about 1e6 iterations per second of ++
+// That is why there is more complicated code
 BigInteger& BigInteger::operator++() {
     resolve_carry(negative ? -1 : 1, 0);
     resolve_sign();
@@ -458,13 +494,15 @@ BigInteger& BigInteger::operator++() {
     return *this;
 }
 
-BigInteger BigInteger::operator++(int) {
+BigInteger BigInteger::operator++(digit_t) {
     auto result = *this;
     ++*this;
     return result;
 }
 
+//The same as with operator++
 BigInteger& BigInteger::operator--() {
+    if (*this == 0) return *this = -1;
     resolve_carry(negative ? 1 : -1, 0);
     resolve_sign();
     clear_leading_zeroes(digits);
@@ -485,11 +523,18 @@ BigInteger BigInteger::operator-() const {
 
 string BigInteger::toString() const {
     size_t offset = negative ? 1 : 0;
-    string result(size() + offset, '\0');
+    string result(size() * BASE_LEN + offset, '0');
     for (size_t i = 0; i < size(); ++i) {
-        result[result.size() - i - 1] = digit_to_char(digits[i]);
+        string additional = digit_to_string(digits[i]);
+        for (size_t j = 0; j < BASE_LEN; ++j) {
+            result[i * BASE_LEN + j] = additional[BASE_LEN - 1 - j];
+        }
     }
-    if (negative) result[0] = '-';
+    while(result.size() > 1 && result[result.size() - offset - 1] == '0') result.pop_back();
+
+    if (negative) result[result.size() - 1] = '-';
+    reverse(result.begin(), result.end());
+    
     return result;
 }
 
@@ -498,7 +543,7 @@ BigInteger::operator long long() const {
     long long power = 1;
     for(size_t i = 0; i < size(); ++i) {
         result += digits[i] * power;
-        power *= BASE;
+        power *= DIGIT_BASE;
     }
     if (is_negative()) result *= -1;
 
@@ -508,6 +553,7 @@ BigInteger::operator long long() const {
 BigInteger::operator bool() const {
     return !is_zero();
 }
+
 
 bool BigInteger::is_negative() const {
     return negative;
@@ -527,7 +573,7 @@ BigInteger BigInteger::power(const BigInteger& indicator, const BigInteger& expo
             result *= current_power;
         }
         BigInteger new_power = current_power;
-        for (auto t = 1; t < BASE; ++t) {
+        for (auto t = 1; t < DIGIT_BASE; ++t) {
             new_power *= current_power;
         }
         current_power = new_power;
@@ -595,11 +641,13 @@ strong_ordering operator<=>(const BigInteger& left, const BigInteger& right) {
 BigInteger operator""_bi(unsigned long long source) {
     BigInteger result = static_cast<long long>(source / 2);
     result *= 2;
-    result += static_cast<int>(source % 2);
+    result += static_cast<digit_t>(source % 2);
     return result;
 }
 
 BigInteger gcd(BigInteger left, BigInteger right) {
+    if (left.is_negative()) left.invert_sign();
+    if (right.is_negative()) right.invert_sign();
     BigInteger* big = &left;
     BigInteger* small = &right;
 
@@ -617,7 +665,7 @@ class Rational {
 
     void reduct();
 
-    BigInteger to_int_binary_shifted(long long binary_shift) const;
+    BigInteger to_digit_t_binary_shifted(long long binary_shift) const;
   public:
 
     Rational();
@@ -671,13 +719,13 @@ std::ostream& operator<<(std::ostream& output, const Rational& other);
 
 void Rational::reduct() {
     BigInteger to_reduct = gcd(numerator, denominator);
-    numerator /= to_reduct;
-    denominator /= to_reduct;
-
     if (denominator.is_negative()) {
         numerator.invert_sign();
         denominator.invert_sign();
     }
+    if (to_reduct == 1) return;
+    numerator /= to_reduct;
+    denominator /= to_reduct; 
 }
 
 Rational::Rational() : numerator(0), denominator(1) {}
@@ -729,10 +777,10 @@ string Rational::asDecimal(size_t precision) const {
     // answer * power(10, precision) is around numerator / denominator
     // so let's calculate it this way
     // use precision + 1 to do correct round up/down
-    BigInteger additional = BigInteger::power(10, precision + 1);
-
+    BigInteger additional = BigInteger::power(10, static_cast<long long>(precision + 1));
     // pre_divided is almost what we need. now only do correct round and divide by 10
-    BigInteger pre_divided = ((numerator * additional) / denominator);
+    BigInteger pre_divided = (numerator * additional);
+    pre_divided /= denominator;
     if (pre_divided.is_negative()) pre_divided.invert_sign();
 
     // divided is the answer string except for decimal dot
@@ -756,7 +804,7 @@ string Rational::asDecimal(size_t precision) const {
     return result;
 }
 
-BigInteger Rational::to_int_binary_shifted(long long binary_shift) const {
+BigInteger Rational::to_digit_t_binary_shifted(long long binary_shift) const {
     BigInteger exponent = BigInteger::power(2, abs(binary_shift));
     BigInteger result = numerator;
     if (binary_shift < 0) {
@@ -769,26 +817,8 @@ BigInteger Rational::to_int_binary_shifted(long long binary_shift) const {
 }
 
 Rational::operator double() const {
-    if (numerator.is_zero()) return 0;
-    // double is 52 bits of mantissa and 11 bits of exponent
-    // first using bin_search find the best exponent
-    long long exponent_l = -1024;
-    long long exponent_r = 1024;
-    while(exponent_l != exponent_r - 1) {
-        long long m = (exponent_l + exponent_r) / 2;
-        
-        BigInteger result = to_int_binary_shifted(m);
-        if (result.is_negative()) result.invert_sign();
-
-        if (result >= DOUBLE_MAX) {
-            exponent_r = m;
-        } else {
-            exponent_l = m;
-        }
-    }
-    // then save the answer as double
-    auto mantissa = to_int_binary_shifted(exponent_l);    
-    return ldexp(static_cast<long long>(mantissa), -exponent_l);
+    static const size_t double_precision =  300;
+    return std::stod(asDecimal(double_precision));
 }
 
 Rational::operator bool() const {
